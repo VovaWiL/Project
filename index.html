@@ -5,60 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мои Проекты</title>
     <style>
+        /* Стиль фона как у TIMATE */
         body {
-            background-color: #ffffff;
-            font-family: Arial, sans-serif;
+            /* Используем градиент, похожий на стиль твоего логотипа */
+            background: linear-gradient(135deg, #a8e063 0%, #56ab2f 100%);
+            background-attachment: fixed;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            min-height: 100vh;
             padding-top: 50px;
+            color: #fff;
         }
 
         header {
             text-align: center;
             margin-bottom: 40px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         header h1 {
             font-size: 48px;
             margin: 0;
-            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
         header p {
             font-size: 18px;
-            color: #666;
+            opacity: 0.9;
         }
 
-        /* Сетка проектов */
         .grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 колонки как на картинке */
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
             max-width: 1100px;
             width: 90%;
             padding-bottom: 50px;
         }
 
-        /* Стиль карточки */
+        /* Карточка с эффектом стекла (Glassmorphism) */
         .project-card {
-            aspect-ratio: 16 / 9; /* Соотношение сторон как у карточек Neal.fun */
-            border: 2px solid #000;
-            border-radius: 15px;
+            aspect-ratio: 16 / 9;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
             overflow: hidden;
             position: relative;
             cursor: pointer;
-            transition: transform 0.1s ease;
+            transition: all 0.3s ease;
             text-decoration: none;
             display: block;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
         }
 
         .project-card:hover {
-            transform: scale(1.02);
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.25);
         }
 
-        /* Картинка на весь фон карточки */
+        /* Картинка проекта */
         .project-card img {
             width: 100%;
             height: 100%;
@@ -66,25 +78,22 @@
             display: block;
         }
 
-        /* Заголовок внутри карточки (если нужно) */
+        /* Название проекта снизу */
         .project-title {
             position: absolute;
             bottom: 0;
             width: 100%;
             background: rgba(255, 255, 255, 0.9);
-            color: #000;
+            color: #1d350c; /* Темно-зеленый под стиль TIMATE */
             text-align: center;
-            padding: 10px 0;
+            padding: 12px 0;
             font-weight: bold;
-            font-size: 20px;
-            border-top: 2px solid #000;
+            font-size: 18px;
         }
 
-        /* Адаптивность для телефонов */
-        @media (max-width: 900px) {
-            .grid { grid-template-columns: repeat(2, 1fr); }
-        }
+        /* Адаптация под мобилки */
         @media (max-width: 600px) {
+            header h1 { font-size: 32px; }
             .grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -92,29 +101,21 @@
 <body>
 
     <header>
-        <h1>МОИ ПРОЕКТЫ</h1>
-        <p>Нажми на проект, чтобы открыть</p>
+        <h1>Мои Проекты</h1>
+        <p>Нажми на проект, чтобы перейти</p>
     </header>
 
     <div class="grid">
         
-        <!-- Карточка твоего мессенджера -->
+        <!-- Карточка TIMATE -->
         <a href="https://timate.ru/download" class="project-card">
-            <!-- Здесь вставь прямую ссылку на фото с буквой T или само фото -->
-            <img src="t_logo.png" alt="TIMATE Messenger">
+            <!-- Ссылка на твою картинку в корне GitHub -->
+            <img src="TimateLogo.jpg" alt="TIMATE Messenger">
             <div class="project-title">TIMATE</div>
         </a>
 
-        <!-- Заглушки для твоих будущих проектов (просто скопируй этот блок) -->
-        <a href="#" class="project-card">
-            <img src="https://via.placeholder.com/600x400?text=Project+2" alt="Проект 2">
-            <div class="project-title">Project Name</div>
-        </a>
-
-        <a href="#" class="project-card">
-            <img src="https://via.placeholder.com/600x400?text=Project+3" alt="Проект 3">
-            <div class="project-title">Project Name</div>
-        </a>
+        <!-- Место для других проектов -->
+        <!-- Просто добавь такие же блоки ниже, когда будут новые проекты -->
 
     </div>
 
