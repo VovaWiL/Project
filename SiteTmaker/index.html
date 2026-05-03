@@ -1,0 +1,348 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { 
+  Plus,
+  Type, 
+  Image as ImageIcon, 
+  Square, 
+  Trash2, 
+  Layers, 
+  Code,
+  Copy,
+  X,
+  FileCode,
+  Braces,
+  MousePointer2,
+  Circle as CircleIcon,
+  CheckSquare,
+  TextCursorInput,
+  Fingerprint,
+  GripVertical,
+  Zap,
+  Play
+} from 'lucide-react';
+
+const App = () => {
+  const [elements, setElements] = useState([
+    { 
+      id: 'btn_1', 
+      type: 'button', 
+      x: 150, y: 50, w: 200, h: 50, 
+      content: 'Нажми меня',
+      styles: { fontSize: 16, color: '#ffffff', backgroundColor: '#3b82f6', borderRadius: 8, fontWeight: 'bold' } 
+    },
+    { 
+      id: 'txt_1', 
+      type: 'text', 
+      x: 150, y: 120, w: 300, h: 40, 
+      content: 'Текст изменится после клика',
+      styles: { fontSize: 18, color: '#1e293b', backgroundColor: 'transparent', borderRadius: 0, fontWeight: 'normal' } 
+    }
+  ]);
+
+  const [scripts, setScripts] = useState(`// Напишите логику здесь
+// elementId - ID элемента, на который нажали
+
+function onAction(elementId) {
+  if (elementId === 'btn_1') {
+    setContent('txt_1', 'Кнопка нажата! 🎉');
+    setStyle('txt_1', 'color', '#10b981');
+  }
+}`);
+
+  const [selectedId, setSelectedId] = useState(null);
+  const [viewMode, setViewMode] = useState('edit'); // edit, preview, scripts
+  const [dragging, setDragging] = useState(null);
+  const [resizing, setResizing] = useState(null);
+  const [exportData, setExportData] = useState(null);
+  const [isComponentMenuOpen, setIsComponentMenuOpen] = useState(true);
+  
+  const [leftPanelWidth, setLeftPanelWidth] = useState(260);
+  const [rightPanelWidth, setRightPanelWidth] = useState(280);
+  const [isResizingLeft, setIsResizingLeft] = useState(false);
+  const [isResizingRight, setIsResizingRight] = useState(false);
+
+  const canvasRef = useRef(null);
+
+  const componentLibrary = [
+    { type: 'text', label: 'Текст', icon: <Type size={18} />, w: 250, h: 50, content: 'Новый текст' },
+    { type: 'rect', label: 'Прямоугольник', icon: <Square size={18} />, w: 150, h: 150, content: '' },
+    { type: 'circle', label: 'Круг', icon: <CircleIcon size={18} />, w: 100, h: 100, content: '' },
+    { type: 'button', label: 'Кнопка', icon: <Fingerprint size={18} />, w: 140, h: 45, content: 'Кнопка' },
+    { type: 'input', label: 'Поле ввода', icon: <TextCursorInput size={18} />, w: 200, h: 40, content: 'Введите текст...' },
+    { type: 'checkbox', label: 'Чекбокс', icon: <CheckSquare size={18} />, w: 150, h: 30, content: 'Выбрать' },
+    { type: 'image', label: 'Картинка', icon: <ImageIcon size={18} />, w: 300, h: 200, content: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe' },
+  ];
+
+  // API для скриптов
+  const runScriptAction = (id) => {
+    if (viewMode !== 'preview') return;
+    
+    try {
+      const sandbox = {
+        setContent: (elId, val) => {
+          setElements(prev => prev.map(el => el.id === elId ? { ...el, content: val } : el));
+        },
+        setStyle: (elId, key, val) => {
+          setElements(prev => prev.map(el => el.id === elId ? { ...el, styles: { ...el.styles, [key]: val } } : el));
+        },
+        getElement: (elId) => elements.find(el => el.id === elId)
+      };
+
+      const execute = new Function('elementId', 'setContent', 'setStyle', 'getElement', `
+        ${scripts}
+        if (typeof onAction === 'function') onAction(elementId);
+      `);
+
+      execute(id, sandbox.setContent, sandbox.setStyle, sandbox.getElement);
+    } catch (err) {
+      console.error("Script Error:", err);
+    }
+  };
+
+  const addElement = (comp) => {
+    const newElt = {
+      id: `${comp.type}_${Date.now().toString().slice(-4)}`,
+      type: comp.type,
+      x: 100, y: 100, w: comp.w, h: comp.h,
+      content: comp.content,
+      styles: {
+        backgroundColor: comp.type === 'rect' || comp.type === 'circle' ? '#e2e8f0' : 
+                         comp.type === 'button' ? '#3b82f6' : 'transparent',
+        color: comp.type === 'button' ? '#ffffff' : '#000000',
+        fontSize: 14,
+        borderRadius: comp.type === 'button' ? 8 : (comp.type === 'circle' ? 1000 : 0),
+        fontWeight: 'normal'
+      }
+    };
+    setElements([...elements, newElt]);
+    setSelectedId(newElt.id);
+  };
+
+  const startResizingLeft = (e) => { e.preventDefault(); setIsResizingLeft(true); };
+  const startResizingRight = (e) => { e.preventDefault(); setIsResizingRight(true); };
+
+  const handleGlobalMouseMove = useCallback((e) => {
+    if (isResizingLeft) {
+      setLeftPanelWidth(Math.max(160, Math.min(500, e.clientX - 56)));
+    }
+    if (isResizingRight) {
+      setRightPanelWidth(Math.max(200, Math.min(600, window.innerWidth - e.clientX)));
+    }
+    if (dragging) {
+      const dx = e.clientX - dragging.startX;
+      const dy = e.clientY - dragging.startY;
+      setElements(elements.map(el => el.id === dragging.id ? { ...el, x: dragging.startEltX + dx, y: dragging.startEltY + dy } : el));
+    }
+    if (resizing) {
+      const dx = e.clientX - resizing.startX;
+      const dy = e.clientY - resizing.startY;
+      const { dir, startW, startH, startXPos, startYPos } = resizing;
+      setElements(elements.map(el => {
+        if (el.id !== resizing.id) return el;
+        let nX = el.x, nY = el.y, nW = el.w, nH = el.h;
+        if (dir.includes('e')) nW = Math.max(20, startW + dx);
+        else if (dir.includes('w')) { const pW = startW - dx; if (pW > 20) { nW = pW; nX = startXPos + dx; } }
+        if (dir.includes('s')) nH = Math.max(20, startH + dy);
+        else if (dir.includes('n')) { const pH = startH - dy; if (pH > 20) { nH = pH; nY = startYPos + dy; } }
+        return { ...el, x: nX, y: nY, w: nW, h: nH };
+      }));
+    }
+  }, [isResizingLeft, isResizingRight, dragging, resizing, elements]);
+
+  const handleGlobalMouseUp = useCallback(() => {
+    setIsResizingLeft(false);
+    setIsResizingRight(false);
+    setDragging(null);
+    setResizing(null);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [handleGlobalMouseMove, handleGlobalMouseUp]);
+
+  const generateJSExport = () => {
+    return `/* Генерируемый JS код для макета */\n\n${scripts}\n\n// Инициализация событий для элементов\ndocument.querySelectorAll('[data-id]').forEach(el => {\n  el.addEventListener('click', () => onAction(el.getAttribute('data-id')));\n});`;
+  };
+
+  const handleMouseDown = (e, id) => {
+    if (viewMode !== 'edit') return;
+    const elt = elements.find(el => el.id === id);
+    setSelectedId(id);
+    setDragging({ id, startX: e.clientX, startY: e.clientY, startEltX: elt.x, startEltY: elt.y });
+  };
+
+  const updateStyle = (key, val) => {
+    setElements(elements.map(el => el.id === selectedId ? { ...el, styles: { ...el.styles, [key]: val } } : el));
+  };
+
+  const updateAttr = (key, val) => {
+    setElements(elements.map(el => el.id === selectedId ? { ...el, [key]: val } : el));
+  };
+
+  const selectedElement = elements.find(el => el.id === selectedId);
+
+  return (
+    <div className={`flex h-screen bg-[#181818] text-gray-300 overflow-hidden font-sans select-none`}>
+      {/* Левая иконная панель */}
+      <div className="w-14 bg-[#252526] border-r border-[#333] flex flex-col items-center py-4 gap-4 z-[110]">
+        <div className="text-blue-500 mb-2"><Layers size={24} /></div>
+        <button onClick={() => setIsComponentMenuOpen(!isComponentMenuOpen)} className={`p-2.5 rounded-lg ${isComponentMenuOpen ? 'bg-blue-600 text-white' : 'hover:bg-[#37373d]'}`}><Plus size={22} /></button>
+        <div className="mt-auto flex flex-col gap-2">
+           <button onClick={() => setExportData({ type: 'JS Logic', code: generateJSExport() })} className="p-2.5 hover:bg-[#37373d] text-blue-400 rounded-lg"><Zap size={20} /></button>
+           <button onClick={() => setExportData({ type: 'JSON', code: JSON.stringify(elements, null, 2) })} className="p-2.5 hover:bg-[#37373d] text-yellow-500 rounded-lg"><Braces size={20} /></button>
+           <button onClick={() => setElements([])} className="p-2.5 hover:bg-red-900/30 text-red-500 rounded-lg"><Trash2 size={20} /></button>
+        </div>
+      </div>
+
+      {/* Панель Блоков */}
+      <div className="relative bg-[#252526] border-r border-[#333] transition-all flex-shrink-0" style={{ width: isComponentMenuOpen ? `${leftPanelWidth}px` : '0px', opacity: isComponentMenuOpen ? 1 : 0 }}>
+        <div className="w-full h-full p-4 overflow-y-auto">
+          <h3 className="text-xs font-bold uppercase text-gray-500 mb-6">Библиотека</h3>
+          <div className="grid grid-cols-1 gap-2">
+            {componentLibrary.map((comp) => (
+              <button key={comp.type} onClick={() => addElement(comp)} className="flex items-center gap-3 p-3 rounded-lg bg-[#2d2d2d] hover:bg-blue-600/20 border border-transparent transition-all text-sm group">
+                <div className="p-2 bg-[#1e1e1e] rounded text-blue-400 group-hover:text-blue-300">{comp.icon}</div>
+                <span className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{comp.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+        {isComponentMenuOpen && <div onMouseDown={startResizingLeft} className="absolute top-0 -right-1 w-2 h-full z-[120] cursor-col-resize hover:bg-blue-500/30" />}
+      </div>
+
+      {/* Контент */}
+      <div className="flex-1 flex flex-col bg-[#1e1e1e] relative min-w-0">
+        <div className="h-10 bg-[#2d2d2d] border-b border-[#181818] flex items-center justify-between px-4 z-40">
+          <div className="flex items-center gap-3">
+            <div className="flex bg-[#181818] rounded p-0.5 border border-[#333]">
+               <button onClick={() => setViewMode('edit')} className={`px-4 py-0.5 text-[9px] font-bold rounded ${viewMode === 'edit' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>ДИЗАЙН</button>
+               <button onClick={() => setViewMode('scripts')} className={`px-4 py-0.5 text-[9px] font-bold rounded ${viewMode === 'scripts' ? 'bg-yellow-600 text-white' : 'text-gray-500'}`}>СКРИПТЫ</button>
+               <button onClick={() => setViewMode('preview')} className={`px-4 py-0.5 text-[9px] font-bold rounded ${viewMode === 'preview' ? 'bg-green-600 text-white' : 'text-gray-500'}`}>ПРЕВЬЮ</button>
+            </div>
+          </div>
+          {viewMode === 'preview' && <div className="text-[10px] text-green-500 font-bold animate-pulse uppercase tracking-widest">Live Mode</div>}
+        </div>
+
+        <div className="flex-1 relative overflow-hidden bg-[#121212]">
+          {viewMode === 'scripts' ? (
+            <div className="w-full h-full p-6 flex flex-col gap-4">
+               <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-2 text-yellow-500"><Zap size={16} /><span className="text-xs font-bold uppercase tracking-wider">JavaScript Logic</span></div>
+                 <div className="text-[10px] text-gray-500">Доступно: getElement, setStyle, setContent</div>
+               </div>
+               <textarea 
+                value={scripts}
+                onChange={(e) => setScripts(e.target.value)}
+                className="flex-1 bg-[#1e1e1e] border border-[#333] p-4 font-mono text-sm text-blue-300 rounded-lg outline-none focus:border-yellow-500/50 resize-none"
+                placeholder="// Пишите код здесь..."
+               />
+            </div>
+          ) : (
+            <div className="w-full h-full overflow-auto flex items-center justify-center p-8">
+              <div ref={canvasRef} className={`relative bg-white shadow-2xl overflow-hidden transition-all`} style={{ width: '800px', height: '600px', minWidth: '800px' }} onMouseDown={(e) => { if (e.target === e.currentTarget) setSelectedId(null); }}>
+                {elements.map((el) => (
+                  <div
+                    key={el.id}
+                    onMouseDown={(e) => handleMouseDown(e, el.id)}
+                    onClick={() => viewMode === 'preview' && runScriptAction(el.id)}
+                    style={{
+                      position: 'absolute', left: el.x, top: el.y, width: el.w, height: el.h,
+                      backgroundColor: (el.type === 'checkbox' || el.type === 'input') && viewMode === 'edit' ? 'rgba(0,0,0,0.03)' : el.styles.backgroundColor,
+                      color: el.styles.color, fontSize: `${el.styles.fontSize}px`, borderRadius: `${el.styles.borderRadius}px`,
+                      fontWeight: el.styles.fontWeight, zIndex: selectedId === el.id ? 50 : 10,
+                      cursor: viewMode === 'edit' ? 'grab' : (el.type === 'button' ? 'pointer' : 'default'),
+                      outline: selectedId === el.id && viewMode === 'edit' ? '2px solid #3b82f6' : 'none',
+                      display: 'flex', alignItems: 'center', justifyContent: el.type === 'checkbox' ? 'flex-start' : 'center',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <div className={`w-full h-full flex items-center justify-center ${viewMode === 'edit' ? 'pointer-events-none' : ''}`}>
+                      {el.type === 'text' && <div className="w-full text-center px-2">{el.content}</div>}
+                      {el.type === 'button' && <div>{el.content}</div>}
+                      {el.type === 'input' && <input type="text" defaultValue={el.content} className="w-full h-full border-none bg-white text-black px-3 outline-none" />}
+                      {el.type === 'checkbox' && (
+                        <div className="flex items-center gap-2 pl-4"><input type="checkbox" className="w-4 h-4" /><span className="text-black text-sm">{el.content}</span></div>
+                      )}
+                      {el.type === 'image' && <img src={el.content} className="w-full h-full object-cover" alt="" />}
+                      {el.type === 'circle' && <div className="w-full h-full rounded-full" style={{background: 'inherit'}} />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Панель Параметров */}
+      <div className="relative bg-[#252526] border-l border-[#333] transition-all flex-shrink-0" style={{ width: `${rightPanelWidth}px` }}>
+        <div onMouseDown={startResizingRight} className="absolute top-0 -left-1 w-2 h-full z-[120] cursor-col-resize hover:bg-blue-500/30" />
+        <div className="w-full h-full p-5 overflow-y-auto">
+          <h3 className="text-[10px] font-bold uppercase text-gray-500 mb-6">Параметры</h3>
+          {selectedElement ? (
+            <div className="space-y-6">
+              <div className="p-3 bg-[#1e1e1e] border border-blue-500/20 rounded-lg">
+                <label className="text-[9px] text-blue-400 uppercase font-bold">Element ID (для JS)</label>
+                <div className="flex items-center gap-2 mt-1">
+                  <input type="text" value={selectedElement.id} onChange={(e) => updateAttr('id', e.target.value)} className="flex-1 bg-transparent text-xs text-white outline-none" />
+                  <FileCode size={14} className="text-blue-500" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {['x', 'y', 'w', 'h'].map(attr => (
+                  <div key={attr} className="space-y-1">
+                    <label className="text-[9px] text-gray-400 uppercase">{attr}</label>
+                    <input type="number" value={Math.round(selectedElement[attr])} onChange={(e) => updateAttr(attr, parseInt(e.target.value))} className="w-full bg-[#1e1e1e] border border-[#333] p-1.5 rounded text-xs outline-none focus:border-blue-500" />
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2"><label className="text-[9px] text-gray-400 uppercase">Контент</label>
+                  <textarea value={selectedElement.content} onChange={(e) => updateAttr('content', e.target.value)} className="w-full bg-[#1e1e1e] border border-[#333] p-2 text-xs rounded outline-none h-24" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1"><label className="text-[9px] text-gray-400 uppercase">Фон</label><input type="color" value={selectedElement.styles.backgroundColor} onChange={(e) => updateStyle('backgroundColor', e.target.value)} className="w-full h-8 bg-transparent cursor-pointer" /></div>
+                  <div className="space-y-1"><label className="text-[9px] text-gray-400 uppercase">Текст</label><input type="color" value={selectedElement.styles.color} onChange={(e) => updateStyle('color', e.target.value)} className="w-full h-8 bg-transparent cursor-pointer" /></div>
+                </div>
+                <div className="space-y-1"><label className="text-[9px] text-gray-400 uppercase">Шрифт: {selectedElement.styles.fontSize}px</label><input type="range" min="8" max="100" value={selectedElement.styles.fontSize} onChange={(e) => updateStyle('fontSize', parseInt(e.target.value))} className="w-full" /></div>
+                <div className="space-y-1"><label className="text-[9px] text-gray-400 uppercase">Скругление: {selectedElement.styles.borderRadius}px</label><input type="range" min="0" max="50" value={selectedElement.styles.borderRadius} onChange={(e) => updateStyle('borderRadius', parseInt(e.target.value))} className="w-full" /></div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-center opacity-20 mt-20 px-4">
+              <MousePointer2 size={40} className="mb-4" />
+              <p className="text-[10px] font-bold uppercase tracking-widest leading-relaxed">Выберите объект</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Экспорт */}
+      {exportData && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-8 bg-black/85 backdrop-blur-md">
+          <div className="bg-[#252526] w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[80vh] border border-[#444] overflow-hidden">
+            <div className="flex items-center justify-between p-5 bg-[#2d2d2d] border-b border-[#444]">
+              <h4 className="font-bold text-sm">Код: {exportData.type}</h4>
+              <button onClick={() => setExportData(null)}><X size={24} /></button>
+            </div>
+            <div className="flex-1 overflow-auto p-6 bg-[#0f0f0f] select-text">
+              <pre className="text-[13px] font-mono text-blue-300/80 whitespace-pre-wrap select-text">{exportData.code}</pre>
+            </div>
+            <div className="p-5 bg-[#2d2d2d] border-t border-[#444] flex justify-end gap-4">
+              <button onClick={() => setExportData(null)} className="bg-blue-600 px-6 py-2 rounded-xl text-xs font-bold">Закрыть</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;
