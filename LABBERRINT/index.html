@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LABBERRINT HORROR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #game-container {
+            width: 100vw;
+            height: 100vh;
+            image-rendering: pixelated;
+        }
+
+        #noise-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.25;
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAn7pYJAAAACHRSTlMAExgnS09XW2Y9SScAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA0SURBVDjLY2AYBaNgFIyCUUAbwMAghAtA6CAnYIDIBmIgshmI0oAhIDpABYhGICpGAW0AALALAn77m9S8AAAAAElFTkSuQmCC');
+        }
+
+        #ui {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0000;
+            text-align: center;
+            z-index: 10;
+        }
+
+        #instructions {
+            background: rgba(10, 0, 0, 0.98);
+            padding: 50px;
+            pointer-events: all;
+            cursor: pointer;
+            border: 1px solid #900;
+            user-select: none;
+            box-shadow: 0 0 100px rgba(255, 0, 0, 0.3);
+        }
+
+        h1, h2, p {
+            color: #ff0000 !important;
+            margin: 15px 0;
+            text-shadow: 0 0 10px rgba(255,0,0,0.5);
+        }
+
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 10%, rgba(0,0,0,1) 120%);
+            pointer-events: none;
+        }
+
+        #jumpscare {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            background-color: black;
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #jumpscare svg {
+            width: 80%;
+            height: 80%;
+            fill: #400;
+            filter: blur(2px);
+        }
+
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 0, 0, 0.4);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container"></div>
+    <div id="noise-overlay"></div>
+    <div class="vignette"></div>
+    <div class="crosshair"></div>
+    
+    <div id="jumpscare">
+        <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" />
+            <circle cx="35" cy="40" r="5" fill="black"/>
+            <circle cx="65" cy="40" r="5" fill="black"/>
+            <path d="M 30 70 Q 50 85 70 70" stroke="black" stroke-width="2" fill="none" />
+        </svg>
+    </div>
+
+    <div id="ui">
+        <div id="instructions">
+            <h1 style="letter-spacing: 12px; font-size: 2.8em;">LABBERRINT HORROR</h1>
+            <h2 style="letter-spacing: 4px; font-size: 1.1em; opacity: 0.8;">ОНИ НАБЛЮДАЮТ</h2>
+            <p id="status-text" style="font-size: 0.9em; margin-top: 20px;">НАЖМИ, ЧТОБЫ ВОЙТИ</p>
+            <p style="font-size: 0.6em; opacity: 0.5;">W,A,S,D - ХОДЬБА | МЫШЬ - ОБЗОР</p>
+        </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, flashlight, audioCtx, windFilter;
+        const clock = new THREE.Clock();
+        const walls = [];
+        const ghosts = [];
+        const keys = {};
+
+        let pitch = 0; 
+        let yaw = 0;   
+        const SENSITIVITY = 0.001; 
+        const PLAYER_HEIGHT = 1.4;
+        const PLAYER_SPEED = 1.2; 
+
+        async function initAudio() {
+            if (audioCtx) {
+                if (audioCtx.state === 'suspended') await audioCtx.resume();
+                return;
+            }
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const noiseSource = audioCtx.createBufferSource();
+                const bufferSize = audioCtx.sampleRate * 2;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                noiseSource.buffer = buffer;
+                noiseSource.loop = true;
+                windFilter = audioCtx.createBiquadFilter();
+                windFilter.type = 'lowpass';
+                windFilter.frequency.value = 350;
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.08;
+                noiseSource.connect(windFilter);
+                windFilter.connect(gain);
+                gain.connect(audioCtx.destination);
+                noiseSource.start();
+            } catch (e) {
+                console.error("Audio error", e);
+            }
+        }
+
+        function generateMaze(width, height) {
+            const maze = Array(height).fill().map(() => Array(width).fill(1));
+            const stack = [];
+            const start = { x: 1, y: 1 };
+            maze[start.y][start.x] = 0;
+            stack.push(start);
+            const dirs = [{ x: 0, y: -2 }, { x: 0, y: 2 }, { x: -2, y: 0 }, { x: 2, y: 0 }];
+            while (stack.length > 0) {
+                const curr = stack[stack.length - 1];
+                const neighbors = dirs.filter(d => {
+                    const nx = curr.x + d.x, ny = curr.y + d.y;
+                    return nx > 0 && nx < width - 1 && ny > 0 && ny < height - 1 && maze[ny][nx] === 1;
+                });
+                if (neighbors.length > 0) {
+                    const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    maze[curr.y + (next.y / 2)][curr.x + (next.x / 2)] = 0;
+                    maze[curr.y + next.y][curr.x + next.x] = 0;
+                    stack.push({ x: curr.x + next.x, y: curr.y + next.y });
+                } else stack.pop();
+            }
+            return maze;
+        }
+
+        function createGhost(x, z) {
+            const group = new THREE.Group();
+            // Тело - высокий темный цилиндр
+            const bodyGeo = new THREE.CylinderGeometry(0.2, 0.3, 1.8, 8);
+            const bodyMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.9 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.9;
+            group.add(body);
+
+            // Голова
+            const headGeo = new THREE.SphereGeometry(0.18, 8, 8);
+            const head = new THREE.Mesh(headGeo, bodyMat);
+            head.position.y = 1.9;
+            group.add(head);
+
+            group.position.set(x, 0, z);
+            scene.add(group);
+            ghosts.push({ mesh: group, startTime: Date.now() });
+        }
+
+        function triggerJumpscare() {
+            const js = document.getElementById('jumpscare');
+            js.style.display = 'flex';
+            setTimeout(() => {
+                js.style.display = 'none';
+            }, 300);
+        }
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000);
+            scene.fog = new THREE.FogExp2(0x000000, 0.65);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 50);
+            camera.rotation.order = 'YXZ'; 
+
+            const ambient = new THREE.AmbientLight(0x020202);
+            scene.add(ambient);
+
+            flashlight = new THREE.SpotLight(0xffffff, 10, 10, Math.PI / 5, 0.6, 2);
+            scene.add(flashlight);
+            scene.add(flashlight.target);
+
+            const wallCanvas = document.createElement('canvas');
+            wallCanvas.width = 32; wallCanvas.height = 32;
+            const ctx = wallCanvas.getContext('2d');
+            ctx.fillStyle = '#050805';
+            ctx.fillRect(0, 0, 32, 32);
+            for(let i=0; i<80; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#081208' : '#000000';
+                ctx.fillRect(Math.random()*32, Math.random()*32, 1, 1);
+            }
+            const wallTex = new THREE.CanvasTexture(wallCanvas);
+            wallTex.magFilter = THREE.NearestFilter;
+            const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 1 });
+            const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x010301 });
+            const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            scene.add(floor);
+
+            const mazeSize = 21;
+            const mazeData = generateMaze(mazeSize, mazeSize);
+            
+            let spawnSet = false;
+            for(let y=1; y<mazeSize; y++) {
+                for(let x=1; x<mazeSize; x++) {
+                    if(mazeData[y][x] === 0) {
+                        if (!spawnSet) {
+                            camera.position.set(x, PLAYER_HEIGHT, y);
+                            spawnSet = true;
+                        } else {
+                            // Редкий шанс поставить призрака в пустом проходе
+                            if (Math.random() < 0.05) {
+                                createGhost(x, y);
+                            }
+                        }
+                    }
+                }
+            }
+
+            for(let y=0; y<mazeSize; y++) {
+                for(let x=0; x<mazeSize; x++) {
+                    if(mazeData[y][x] === 1) {
+                        for(let h=0; h<3; h++) {
+                            const wall = new THREE.Mesh(boxGeo, wallMat);
+                            wall.position.set(x, h + 0.5, y);
+                            scene.add(wall);
+                            walls.push(wall);
+                        }
+                    }
+                }
+            }
+
+            renderer = new THREE.WebGLRenderer({ antialias: false });
+            renderer.setPixelRatio(window.devicePixelRatio * 0.7);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('game-container').appendChild(renderer.domElement);
+
+            const instructions = document.getElementById('instructions');
+            instructions.addEventListener('click', () => {
+                initAudio();
+                document.body.requestPointerLock();
+            });
+
+            document.addEventListener('pointerlockchange', () => {
+                document.getElementById('ui').style.display = (document.pointerLockElement === document.body) ? 'none' : 'block';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (document.pointerLockElement === document.body) {
+                    if (Math.abs(e.movementX) > 400 || Math.abs(e.movementY) > 400) return;
+                    yaw -= e.movementX * SENSITIVITY;
+                    pitch -= e.movementY * SENSITIVITY;
+                    pitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, pitch));
+                    camera.rotation.x = pitch;
+                    camera.rotation.y = yaw;
+                }
+            });
+
+            document.addEventListener('keydown', (e) => { keys[e.code] = true; });
+            document.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        function checkCollision(pos) {
+            const r = 0.28;
+            for (let wall of walls) {
+                if (pos.x > wall.position.x - 0.5 - r && pos.x < wall.position.x + 0.5 + r &&
+                    pos.z > wall.position.z - 0.5 - r && pos.z < wall.position.z + 0.5 + r) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = Math.min(clock.getDelta(), 0.05);
+            
+            if (document.pointerLockElement === document.body) {
+                const moveDir = new THREE.Vector3(0, 0, 0);
+                const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+                const right = new THREE.Vector3(-Math.cos(yaw), 0, Math.sin(yaw));
+
+                if(keys['KeyW']) moveDir.add(forward);
+                if(keys['KeyS']) moveDir.sub(forward);
+                if(keys['KeyA']) moveDir.sub(right);
+                if(keys['KeyD']) moveDir.add(right);
+                
+                if (moveDir.length() > 0) {
+                    moveDir.normalize().multiplyScalar(PLAYER_SPEED * delta);
+                    const nextX = camera.position.x + moveDir.x;
+                    const nextZ = camera.position.z + moveDir.z;
+
+                    if (!checkCollision({ x: nextX, z: camera.position.z })) camera.position.x = nextX;
+                    if (!checkCollision({ x: camera.position.x, z: nextZ })) camera.position.z = nextZ;
+                    camera.position.y = PLAYER_HEIGHT + Math.sin(Date.now() * 0.005) * 0.02;
+                } else {
+                    camera.position.y = PLAYER_HEIGHT + Math.sin(Date.now() * 0.001) * 0.006;
+                }
+
+                // Логика фонарика и мерцания
+                flashlight.position.copy(camera.position);
+                const lookAtPos = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+                flashlight.target.position.copy(camera.position).add(lookAtPos);
+
+                // Случайное мерцание фонарика
+                if (Math.random() > 0.99) {
+                    flashlight.intensity = 5 + Math.random() * 5;
+                } else {
+                    flashlight.intensity = 10;
+                }
+
+                // Логика призраков
+                for (let i = ghosts.length - 1; i >= 0; i--) {
+                    const g = ghosts[i];
+                    const dist = camera.position.distanceTo(g.mesh.position);
+                    
+                    // Если подошли близко, призрак исчезает
+                    if (dist < 2.5) {
+                        scene.remove(g.mesh);
+                        ghosts.splice(i, 1);
+                        if (Math.random() > 0.7) triggerJumpscare();
+                    }
+                }
+            }
+            renderer.render(scene, camera);
+        }
+
+        window.onload = () => {
+            init();
+            animate();
+        };
+    </script>
+</body>
+</html>
