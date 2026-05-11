@@ -185,14 +185,8 @@
             genBtn.disabled = true;
 
             try {
-                // Вычисляем базовый путь динамически. 
-                // Если мы на timate.ru/imggen/, то API должен быть в timate.ru/imggen/api/index
-                const currentPath = window.location.pathname.endsWith('/') 
-                    ? window.location.pathname 
-                    : window.location.pathname + '/';
-                
-                // Исправляем путь, чтобы он не дублировал слеши
-                const apiEndpoint = (currentPath + 'api/index').replace(/\/+/g, '/');
+                // Используем абсолютный путь /api. В Vercel это стандартный путь для функций.
+                const apiEndpoint = '/api';
 
                 const response = await fetch(apiEndpoint, {
                     method: "POST",
@@ -207,7 +201,7 @@
                     console.error("Server Response Raw:", textError);
                     
                     if (textError.includes("<html>")) {
-                        throw new Error(`API не найден по адресу: ${apiEndpoint}. Убедитесь, что папка api лежит рядом с index.html`);
+                        throw new Error(`API не найден по адресу: ${apiEndpoint}. Проверьте, что в репозитории есть папка api с файлом index.js`);
                     }
                     
                     const errorJson = JSON.parse(textError || "{}");
