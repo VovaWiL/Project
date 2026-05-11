@@ -177,7 +177,8 @@
             genBtn.disabled = true;
 
             try {
-                // ПУТЬ К ТВОЕМУ БЭКЕНДУ НА VERCEL (БЕЗОПАСНЫЙ КЛЮЧ)
+                // Пытаемся вызвать API. 
+                // Если файл лежит в /imggen/index.html, то запрос пойдет на /api/index.
                 const response = await fetch('/api/index', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -190,12 +191,19 @@
                     const textError = await response.text();
                     console.error("Raw Server Response:", textError);
                     
+                    // Если вернулся HTML (ошибка 404 от Vercel обычно возвращает страницу), значит путь неверный
                     if (textError.includes("<html>")) {
-                        throw new Error(`API не найден. Проверьте структуру папок на Vercel.`);
+                        throw new Error(`Ошибка: API не отвечает по адресу /api/index. Проверьте, что папка 'api' находится в корне проекта.`);
                     }
                     
-                    const errorJson = JSON.parse(textError || "{}");
-                    throw new Error(errorJson.error || `Ошибка сервера: ${response.status}`);
+                    let errorMsg;
+                    try {
+                        const errorJson = JSON.parse(textError);
+                        errorMsg = errorJson.error;
+                    } catch(e) {
+                        errorMsg = `Ошибка сервера: ${response.status}`;
+                    }
+                    throw new Error(errorMsg);
                 }
 
                 const result = await response.json();
