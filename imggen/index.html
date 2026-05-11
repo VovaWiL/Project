@@ -141,11 +141,7 @@
     <script>
         function logAction(type, data) {
             const timestamp = new Date().toISOString();
-            const logEntry = {
-                timestamp,
-                type,
-                ...data
-            };
+            const logEntry = { timestamp, type, ...data };
             console.log(`[LOG SIGNAL]:`, logEntry);
         }
 
@@ -173,11 +169,7 @@
             const w = parseInt(widthInput.value) || 1024;
             const h = parseInt(heightInput.value) || 1024;
 
-            logAction('info', { 
-                action: 'generation_started', 
-                prompt: text, 
-                size: `${w}x${h}` 
-            });
+            logAction('info', { action: 'generation_started', prompt: text });
 
             errorArea.classList.add('hidden');
             btnLoader.classList.remove('hidden');
@@ -185,10 +177,10 @@
             genBtn.disabled = true;
 
             try {
-                // Используем абсолютный путь /api. В Vercel это стандартный путь для функций.
-                const apiEndpoint = '/api';
-
-                const response = await fetch(apiEndpoint, {
+                /** * ВАЖНО: Мы используем 'api/index' без начального слеша.
+                 * Это заставляет браузер искать папку api в текущей директории (например, /imggen/api/index).
+                 */
+                const response = await fetch('api/index', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ prompt: text })
@@ -198,10 +190,10 @@
                 
                 if (!response.ok || !contentType || !contentType.includes("application/json")) {
                     const textError = await response.text();
-                    console.error("Server Response Raw:", textError);
+                    console.error("Raw Server Response:", textError);
                     
                     if (textError.includes("<html>")) {
-                        throw new Error(`API не найден по адресу: ${apiEndpoint}. Проверьте, что в репозитории есть папка api с файлом index.js`);
+                        throw new Error(`API не найден. Убедитесь, что папка 'api' находится ВНУТРИ папки вашего проекта на GitHub.`);
                     }
                     
                     const errorJson = JSON.parse(textError || "{}");
@@ -215,24 +207,14 @@
                     outputImage.src = `data:image/png;base64,${data}`;
                     outputImage.style.aspectRatio = `${w} / ${h}`;
                     resultArea.classList.remove('hidden');
-                    
-                    logAction('success', { 
-                        action: 'generation_completed', 
-                        prompt: text 
-                    });
-
+                    logAction('success', { action: 'generation_completed' });
                 } else {
-                    throw new Error(result.error || "Ошибка: API не вернул изображение.");
+                    throw new Error(result.error || "API вернул пустой результат");
                 }
             } catch (e) {
                 errorArea.innerText = e.message;
                 errorArea.classList.remove('hidden');
-                
-                logAction('error', { 
-                    action: 'generation_failed', 
-                    message: e.message,
-                    prompt: text
-                });
+                logAction('error', { action: 'generation_failed', message: e.message });
             } finally {
                 btnLoader.classList.add('hidden');
                 btnText.innerText = "Сгенерировать";
@@ -249,13 +231,9 @@
                 ta.select();
                 document.execCommand("copy");
                 document.body.removeChild(ta);
-                
                 const btn = event.target;
                 const old = btn.innerText;
                 btn.innerText = "ГОТОВО";
-                
-                logAction('info', { action: 'base64_copied' });
-                
                 setTimeout(() => btn.innerText = old, 1500);
             }
         }
