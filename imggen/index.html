@@ -139,13 +139,8 @@
     </div>
 
     <script>
-        const apiKey = ""; 
+        // Ключ больше не нужен здесь, он на сервере Vercel
 
-        /**
-         * Logs actions for Admin Panel
-         * @param {string} type - 'info', 'success', or 'error'
-         * @param {object} data - Details of the event
-         */
         function logAction(type, data) {
             const timestamp = new Date().toISOString();
             const logEntry = {
@@ -153,39 +148,15 @@
                 type,
                 ...data
             };
-            
-            // Здесь можно добавить отправку на сервер или в Firebase
             console.log(`[LOG SIGNAL]:`, logEntry);
-            
-            // Если в будущем будет элемент логов на странице, можно добавлять туда
-            // const logTarget = document.getElementById('admin-logs');
-            // if (logTarget) logTarget.innerHTML += `<div>${type}: ${data.message}</div>`;
         }
 
-        // Trigger generation on Enter key
         document.getElementById('prompt').addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 generateImage();
             }
         });
-
-        async function fetchWithRetry(url, options, retries = 5, backoff = 1000) {
-            try {
-                const response = await fetch(url, options);
-                if (!response.ok) {
-                    const errorBody = await response.json().catch(() => ({}));
-                    throw new Error(errorBody.error?.message || `Error ${response.status}`);
-                }
-                return await response.json();
-            } catch (err) {
-                if (retries > 0) {
-                    await new Promise(resolve => setTimeout(resolve, backoff));
-                    return fetchWithRetry(url, options, retries - 1, backoff * 2);
-                }
-                throw err;
-            }
-        }
 
         async function generateImage() {
             const promptInput = document.getElementById('prompt');
@@ -204,36 +175,26 @@
             const w = parseInt(widthInput.value) || 1024;
             const h = parseInt(heightInput.value) || 1024;
 
-            // Log start of generation
             logAction('info', { 
                 action: 'generation_started', 
                 prompt: text, 
                 size: `${w}x${h}` 
             });
 
-            let aspectRatio = "1:1";
-            const ratio = w / h;
-            if (ratio >= 1.5) aspectRatio = "16:9";
-            else if (ratio <= 0.6) aspectRatio = "9:16";
-            else if (ratio > 1.1) aspectRatio = "4:3";
-            else if (ratio < 0.9) aspectRatio = "3:4";
-
             errorArea.classList.add('hidden');
             btnLoader.classList.remove('hidden');
             btnText.innerText = "Создание...";
             genBtn.disabled = true;
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
-            
             try {
-                const result = await fetchWithRetry(url, {
+                // Теперь запрос идет на ваш собственный бэкенд в Vercel
+                const response = await fetch('/api', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        instances: [{ prompt: text }],
-                        parameters: { sampleCount: 1, aspectRatio: aspectRatio }
-                    })
+                    body: JSON.stringify({ prompt: text })
                 });
+
+                const result = await response.json();
 
                 if (result.predictions && result.predictions[0]) {
                     const data = result.predictions[0].bytesBase64Encoded;
@@ -241,20 +202,18 @@
                     outputImage.style.aspectRatio = `${w} / ${h}`;
                     resultArea.classList.remove('hidden');
                     
-                    // Log success
                     logAction('success', { 
                         action: 'generation_completed', 
                         prompt: text 
                     });
 
                 } else {
-                    throw new Error("Empty response from AI server.");
+                    throw new Error(result.error || result.details || "Ошибка сервера");
                 }
             } catch (e) {
                 errorArea.innerText = e.message;
                 errorArea.classList.remove('hidden');
                 
-                // Log error
                 logAction('error', { 
                     action: 'generation_failed', 
                     message: e.message,
