@@ -177,10 +177,8 @@
             genBtn.disabled = true;
 
             try {
-                /** * ВАЖНО: Мы используем 'api/index' без начального слеша.
-                 * Это заставляет браузер искать папку api в текущей директории (например, /imggen/api/index).
-                 */
-                const response = await fetch('api/index', {
+                // ПУТЬ К ТВОЕМУ БЭКЕНДУ НА VERCEL (БЕЗОПАСНЫЙ КЛЮЧ)
+                const response = await fetch('/api/index', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ prompt: text })
@@ -193,7 +191,7 @@
                     console.error("Raw Server Response:", textError);
                     
                     if (textError.includes("<html>")) {
-                        throw new Error(`API не найден. Убедитесь, что папка 'api' находится ВНУТРИ папки вашего проекта на GitHub.`);
+                        throw new Error(`API не найден. Проверьте структуру папок на Vercel.`);
                     }
                     
                     const errorJson = JSON.parse(textError || "{}");
