@@ -139,8 +139,6 @@
     </div>
 
     <script>
-        // Ключ больше не нужен здесь, он на сервере Vercel
-
         function logAction(type, data) {
             const timestamp = new Date().toISOString();
             const logEntry = {
@@ -187,12 +185,20 @@
             genBtn.disabled = true;
 
             try {
-                // Теперь запрос идет на ваш собственный бэкенд в Vercel
+                // Используем относительный путь. Vercel ожидает функции в /api/
                 const response = await fetch('/api', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ prompt: text })
                 });
+
+                // Сначала проверяем тип контента, прежде чем пытаться парсить JSON
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    const textError = await response.text();
+                    console.error("Server returned non-JSON response:", textError);
+                    throw new Error("Сервер вернул ошибку (не JSON). Проверьте вкладку Deployments в Vercel.");
+                }
 
                 const result = await response.json();
 
@@ -208,7 +214,7 @@
                     });
 
                 } else {
-                    throw new Error(result.error || result.details || "Ошибка сервера");
+                    throw new Error(result.error || result.details || "Не удалось получить изображение");
                 }
             } catch (e) {
                 errorArea.innerText = e.message;
