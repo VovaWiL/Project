@@ -185,19 +185,26 @@
             genBtn.disabled = true;
 
             try {
-                // Используем относительный путь. Vercel ожидает функции в /api/
-                const response = await fetch('/api', {
+                // Изменен путь на /api/index, чтобы Vercel точнее находил функцию
+                const response = await fetch('/api/index', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ prompt: text })
                 });
 
-                // Сначала проверяем тип контента, прежде чем пытаться парсить JSON
                 const contentType = response.headers.get("content-type");
-                if (!contentType || !contentType.includes("application/json")) {
+                
+                if (!response.ok || !contentType || !contentType.includes("application/json")) {
                     const textError = await response.text();
-                    console.error("Server returned non-JSON response:", textError);
-                    throw new Error("Сервер вернул ошибку (не JSON). Проверьте вкладку Deployments в Vercel.");
+                    console.error("Server Response:", textError);
+                    
+                    // Если вернулся HTML, значит это 404 или ошибка Vercel
+                    if (textError.includes("<html>")) {
+                        throw new Error("API не найден (404). Проверь, что файл в гитхабе лежит по пути api/index.js");
+                    }
+                    
+                    const errorJson = JSON.parse(textError || "{}");
+                    throw new Error(errorJson.error || `Ошибка сервера: ${response.status}`);
                 }
 
                 const result = await response.json();
@@ -214,7 +221,7 @@
                     });
 
                 } else {
-                    throw new Error(result.error || result.details || "Не удалось получить изображение");
+                    throw new Error(result.error || "Ошибка: API не вернул изображение.");
                 }
             } catch (e) {
                 errorArea.innerText = e.message;
