@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>???</title>
+    <style>
+    
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: "Courier New", Courier, monospace;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        .quest-img {
+            max-width: 300px;
+            border: 1px dashed #333;
+            margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            background-color: #111;
+            color: #00ff00;
+            border: 2px solid #555;
+            padding: 10px;
+            font-size: 18px;
+            width: 250px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        /* Кнопка «Проверить» */
+        button {
+            background-color: #222;
+            color: #fff;
+            border: 2px solid #555;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-left: 5px;
+        }
+
+        button:hover {
+            background-color: #00ff00;
+            color: #000;
+        }
+
+        /* Текст ошибки или успеха */
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <img src="img/secret.png" class="quest-img" alt="тут что-то должно быть">
+
+    <br><br>
+
+    <div>
+        <label style="display:block; margin-bottom: 10px; color: #888;">веди ответ:</label>
+        <input type="text" id="answerInput" placeholder="..." autocomplete="off">
+        <button onclick="checkAnswer()">ОК</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <script>
+        function checkAnswer() {
+     
+            var userAnswer = document.getElementById("answerInput").value.trim().toLowerCase();
+            var resultDiv = document.getElementById("result");
+
+            if (!userAnswer) return;
+
+       
+            var userHash = CryptoJS.MD5(userAnswer).toString();
+
+       
+            var sys_key_1 = "fc0f58cd28fb483918076607bb033662";
+            var sys_key_2 = "86dfd08c5bf68bf34484b9015096144e";
+
+    
+            if (userHash === sys_key_1 || userHash === sys_key_2) {
+                resultDiv.style.color = "#00ff00"; 
+                resultDiv.innerHTML = "ДОГАДАЛСЯ. Доступ разрешен.";
+            } else if (userAnswer === "белый" || userAnswer === "пусто" || userAnswer === "ничего") {
+                resultDiv.style.color = "#ff0000"; 
+                resultDiv.innerHTML = "Глаза тебя обманывают. Картинка говорит тебе здраствуй, но ты её не слышишь.";
+            } else {
+                resultDiv.style.color = "#ff0000";
+                resultDiv.innerHTML = "НЕВЕРНО.";
+            }
+        }
+    </script>
+
+</body>
+</html>
