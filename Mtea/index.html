@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>???</title>
     <style>
-       
+      
         body {
             background-color: #000000;
             color: #ffffff;
@@ -15,26 +15,26 @@
 
         .quest-img {
             max-width: 300px;
-            border: 1px dashed #333; 
+            border: 1px dashed #222; 
             margin-bottom: 30px;
         }
 
         input[type="text"] {
             background-color: #111;
-            color: #00ff00;
-            border: 2px solid #555;
+            color: #00ff00; 
+            border: 2px solid #444;
             padding: 10px;
             font-size: 18px;
-            width: 250px;
+            width: 280px;
             outline: none;
             font-family: inherit;
         }
 
-       
+     
         button {
             background-color: #222;
             color: #fff;
-            border: 2px solid #555;
+            border: 2px solid #444;
             padding: 10px 20px;
             font-size: 18px;
             cursor: pointer;
@@ -50,19 +50,19 @@
        
         #result {
             margin-top: 20px;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <img src="img/secret.png" class="quest-img" alt="тут что-то должно быть">
+    <img src="img/secret.png" class="quest-img" alt="image_error_0x99">
 
     <br><br>
 
     <div>
-        <label style="display:block; margin-bottom: 10px; color: #888;">веди ответ:</label>
+        <label style="display:block; margin-bottom: 10px; color: #666;">введи полученный код:</label>
         <input type="text" id="answerInput" placeholder="..." autocomplete="off">
         <button onclick="checkAnswer()">ОК</button>
     </div>
@@ -78,28 +78,31 @@
         }
 
         function checkAnswer() {
-      
+          
             var userAnswer = document.getElementById("answerInput").value.trim().toLowerCase();
             var resultDiv = document.getElementById("result");
 
             if (!userAnswer) return;
 
+       
             var userSecret = encodeSafe(userAnswer);
 
-      
-            var sys_key_1 = "0L/RgNC40LLQtdGC";
-            var sys_key_2 = "0L/RgNC40LLQtdGCIQ=="; 
+    
+            var sys_key_1 = "0YDRgNCw0YHRiNC40YTRgNC+0LLQutCw";
 
-          
-            if (userSecret === sys_key_1 || userSecret === sys_key_2) {
+            // Проверка
+            if (userSecret === sys_key_1) {
                 resultDiv.style.color = "#00ff00"; 
-                resultDiv.innerHTML = "ДОГАДАЛСЯ. Отправь скрин мне в личку.";
-            } else if (userAnswer === "белый" || userAnswer === "пусто" || userAnswer === "ничего") {
+                resultDiv.innerHTML = "ДОСТУП ПРЕДОСТАВЛЕН. Система взломана.";
+            } else if (userAnswer === "белый" || userAnswer === "пусто" || userAnswer === "ничего" || userAnswer === "белый квадрат") {
                 resultDiv.style.color = "#ff0000"; 
-                resultDiv.innerHTML = "Глаза тебя обманывают. Картинка говорит тебе здраствуй, но ты её не слышишь.";
+                resultDiv.innerHTML = "Суть не в цвете. Смотри в самый корень файла.";
+            } else if (userAnswer.includes(".") || userAnswer.includes("-")) {
+                resultDiv.style.color = "#ff0000"; 
+                resultDiv.innerHTML = "Близко. Но систему нужно кормить текстом, а не сигналами.";
             } else {
                 resultDiv.style.color = "#ff0000";
-                resultDiv.innerHTML = "НЕВЕРНО.";
+                resultDiv.innerHTML = "НЕВЕРНО. Код безопасности не принят.";
             }
         }
     </script>
