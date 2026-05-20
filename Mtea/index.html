@@ -61,7 +61,7 @@
     <div>
         <label style="display:block; margin-bottom: 10px; color: #666;">введи полученный код:</label>
         <input type="text" id="answerInput" placeholder="..." autocomplete="off">
-        <button onclick="checkAnswer()">ОК</button>
+        <button onclick="verifySystemKey()">ОК</button>
     </div>
 
     <div id="result"></div>
@@ -71,7 +71,7 @@
             return btoa(unescape(encodeURIComponent(str)));
         }
 
-        function checkAnswer() {
+        function verifySystemKey() {
             var userAnswer = document.getElementById("answerInput").value.trim().toLowerCase();
             var resultDiv = document.getElementById("result");
 
