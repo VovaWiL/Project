@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>???</title>
     <style>
-      
         body {
             background-color: #000000;
             color: #ffffff;
@@ -30,7 +29,6 @@
             font-family: inherit;
         }
 
-        
         button {
             background-color: #222;
             color: #fff;
@@ -47,7 +45,6 @@
             color: #000;
         }
 
-       
         #result {
             margin-top: 20px;
             font-size: 18px;
@@ -70,27 +67,19 @@
     <div id="result"></div>
 
     <script>
-      
         function encodeSafe(str) {
-            var bytes = new TextEncoder().encode(str);
-            var binString = String.fromCodePoint(...bytes);
-            return btoa(binString);
+            return btoa(unescape(encodeURIComponent(str)));
         }
 
         function checkAnswer() {
-          
             var userAnswer = document.getElementById("answerInput").value.trim().toLowerCase();
             var resultDiv = document.getElementById("result");
 
             if (!userAnswer) return;
 
-            
             var userSecret = encodeSafe(userAnswer);
-
-        
             var sys_key_1 = "0YDRgNCw0YHRiNC40YTRgNC+0LLQutCw";
 
-           
             if (userSecret === sys_key_1) {
                 resultDiv.style.color = "#00ff00"; 
                 resultDiv.innerHTML = "ПРАВИЛЬНО. Отправь скрин мне в личку";
