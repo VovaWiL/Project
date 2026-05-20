@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <title>???</title>
     <style>
-    
+       
         body {
             background-color: #000000;
             color: #ffffff;
-            font-family: "Courier New", Courier, monospace;
+            font-family: "Courier New", Courier, monospace; 
             text-align: center;
             padding-top: 50px;
         }
 
         .quest-img {
             max-width: 300px;
-            border: 1px dashed #333;
+            border: 1px dashed #333; 
             margin-bottom: 30px;
         }
 
@@ -30,7 +30,7 @@
             font-family: inherit;
         }
 
-        /* Кнопка «Проверить» */
+     
         button {
             background-color: #222;
             color: #fff;
@@ -47,7 +47,7 @@
             color: #000;
         }
 
-        /* Текст ошибки или успеха */
+     
         #result {
             margin-top: 20px;
             font-size: 20px;
@@ -73,25 +73,26 @@
 
     <script>
         function checkAnswer() {
-     
-            var userAnswer = document.getElementById("answerInput").value.trim().toLowerCase();
+        
+            var userAnswer = document.getElementById("answerInput").value.trim();
             var resultDiv = document.getElementById("result");
 
             if (!userAnswer) return;
 
-       
+        
             var userHash = CryptoJS.MD5(userAnswer).toString();
 
-       
-            var sys_key_1 = "fc0f58cd28fb483918076607bb033662";
-            var sys_key_2 = "86dfd08c5bf68bf34484b9015096144e";
+         
+            var sys_key_1 = "5d41402abc4b2a76b9719d911017c592"; 
+            var sys_key_2 = "fc0f58cd28fb483918076607bb033662"; 
+            var sys_key_3 = "9f212261a8ef11a877ff992b4986638a"; 
 
-    
-            if (userHash === sys_key_1 || userHash === sys_key_2) {
-                resultDiv.style.color = "#00ff00"; 
+            // Проверка по всем трем секретным ключам
+            if (userHash === sys_key_1 || userHash === sys_key_2 || userHash === sys_key_3) {
+                resultDiv.style.color = "#00ff00"; // Зеленый цвет успеха
                 resultDiv.innerHTML = "ДОГАДАЛСЯ. Доступ разрешен.";
-            } else if (userAnswer === "белый" || userAnswer === "пусто" || userAnswer === "ничего") {
-                resultDiv.style.color = "#ff0000"; 
+            } else if (userAnswer.toLowerCase() === "белый" || userAnswer.toLowerCase() === "пусто" || userAnswer.toLowerCase() === "ничего") {
+                resultDiv.style.color = "#ff0000"; // Красный цвет ошибки-ловушки
                 resultDiv.innerHTML = "Глаза тебя обманывают. Картинка говорит тебе здраствуй, но ты её не слышишь.";
             } else {
                 resultDiv.style.color = "#ff0000";
