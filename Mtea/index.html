@@ -30,7 +30,7 @@
             font-family: inherit;
         }
 
-     
+       
         button {
             background-color: #222;
             color: #fff;
@@ -47,7 +47,7 @@
             color: #000;
         }
 
-   
+       
         #result {
             margin-top: 20px;
             font-size: 20px;
@@ -70,7 +70,7 @@
     <div id="result"></div>
 
     <script>
-      
+       
         function encodeSafe(str) {
             return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
                 return String.fromCharCode('0x' + p1);
@@ -78,20 +78,19 @@
         }
 
         function checkAnswer() {
-        
+      
             var userAnswer = document.getElementById("answerInput").value.trim().toLowerCase();
             var resultDiv = document.getElementById("result");
 
             if (!userAnswer) return;
 
-         
             var userSecret = encodeSafe(userAnswer);
 
-        
+      
             var sys_key_1 = "0L/RgNC40LLQtdGC";
-            var sys_key_2 = "0L/RgNC40LLQtdGCIQ==";
+            var sys_key_2 = "0L/RgNC40LLQtdGCIQ=="; 
 
-            
+          
             if (userSecret === sys_key_1 || userSecret === sys_key_2) {
                 resultDiv.style.color = "#00ff00"; 
                 resultDiv.innerHTML = "ДОГАДАЛСЯ. Доступ разрешен.";
