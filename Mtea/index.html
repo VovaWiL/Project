@@ -30,7 +30,7 @@
             font-family: inherit;
         }
 
-     
+        
         button {
             background-color: #222;
             color: #fff;
@@ -70,11 +70,11 @@
     <div id="result"></div>
 
     <script>
-       
+      
         function encodeSafe(str) {
-            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
-                return String.fromCharCode('0x' + p1);
-            }));
+            var bytes = new TextEncoder().encode(str);
+            var binString = String.fromCodePoint(...bytes);
+            return btoa(binString);
         }
 
         function checkAnswer() {
@@ -84,16 +84,16 @@
 
             if (!userAnswer) return;
 
-       
+            
             var userSecret = encodeSafe(userAnswer);
 
-    
-           var sys_key_1 = "0YAlRDAlQkYlRDAlQjAlRDElODElRDElODglRDAlQjglRDElODQlRDElODAlRDAlQkUlRDAlQjIlRDAlQkValidw0YQ==";
+        
+            var sys_key_1 = "0YDRgNCw0YHRiNC40YTRgNC+0LLQutCw";
 
-            // Проверка
+           
             if (userSecret === sys_key_1) {
                 resultDiv.style.color = "#00ff00"; 
-                resultDiv.innerHTML = "ДОСТУП ПРЕДОСТАВЛЕН. Система взломана.";
+                resultDiv.innerHTML = "ПРАВИЛЬНО. Отправь скрин мне в личку";
             } else if (userAnswer === "белый" || userAnswer === "пусто" || userAnswer === "ничего" || userAnswer === "белый квадрат") {
                 resultDiv.style.color = "#ff0000"; 
                 resultDiv.innerHTML = "Суть не в цвете. Смотри в самый корень файла.";
@@ -102,7 +102,7 @@
                 resultDiv.innerHTML = "Близко. Но систему нужно кормить текстом, а не сигналами.";
             } else {
                 resultDiv.style.color = "#ff0000";
-                resultDiv.innerHTML = "НЕВЕРНО. Код безопасности не принят.";
+                resultDiv.innerHTML = "НЕВЕРНО";
             }
         }
     </script>
