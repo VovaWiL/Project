@@ -47,7 +47,7 @@
             color: #000;
         }
 
-     
+   
         #result {
             margin-top: 20px;
             font-size: 20px;
@@ -69,31 +69,35 @@
 
     <div id="result"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
     <script>
+      
+        function encodeSafe(str) {
+            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                return String.fromCharCode('0x' + p1);
+            }));
+        }
+
         function checkAnswer() {
         
-            var userAnswer = document.getElementById("answerInput").value.trim();
+            var userAnswer = document.getElementById("answerInput").value.trim().toLowerCase();
             var resultDiv = document.getElementById("result");
 
             if (!userAnswer) return;
 
-        
-            var userHash = CryptoJS.MD5(userAnswer).toString();
-
          
-            var sys_key_1 = "5d41402abc4b2a76b9719d911017c592"; 
-            var sys_key_2 = "fc0f58cd28fb483918076607bb033662"; 
-            var sys_key_3 = "9f212261a8ef11a877ff992b4986638a"; 
+            var userSecret = encodeSafe(userAnswer);
 
-            // Проверка по всем трем секретным ключам
-            if (userHash === sys_key_1 || userHash === sys_key_2 || userHash === sys_key_3) {
-                resultDiv.style.color = "#00ff00"; // Зеленый цвет успеха
+        
+            var sys_key_1 = "0L/RgNC40LLQtdGC";
+            var sys_key_2 = "0L/RgNC40LLQtdGCIQ==";
+
+            
+            if (userSecret === sys_key_1 || userSecret === sys_key_2) {
+                resultDiv.style.color = "#00ff00"; 
                 resultDiv.innerHTML = "ДОГАДАЛСЯ. Доступ разрешен.";
-            } else if (userAnswer.toLowerCase() === "белый" || userAnswer.toLowerCase() === "пусто" || userAnswer.toLowerCase() === "ничего") {
-                resultDiv.style.color = "#ff0000"; // Красный цвет ошибки-ловушки
-                resultDiv.innerHTML = "Глаза тебя обманывают. Картинка говорит тебе здраствуй, но ты её не слышишь.";
+            } else if (userAnswer === "белый" || userAnswer === "пусто" || userAnswer === "ничего") {
+                resultDiv.style.color = "#ff0000"; 
+                resultDiv.innerHTML = "Глаза тебя обманывают. Картинка говорит тебе привет, но ты её не слышишь.";
             } else {
                 resultDiv.style.color = "#ff0000";
                 resultDiv.innerHTML = "НЕВЕРНО.";
