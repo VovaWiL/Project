@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Портфолио | Frontend & Game Developer</title>
+    <!-- Подключаем иконки FontAwesome для красоты -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts для красивого шрифта -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0a0e17;
+            --primary-glow: #32cd32; /* Светло-салатовый акцент */
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Задний фон с неоновыми кругами для работы размытия */
+        .bg-glow-1 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(50, 205, 50, 0.15) 0%, rgba(0,0,0,0) 70%);
+            top: -100px;
+            right: -100px;
+            z-index: -1;
+        }
+
+        .bg-glow-2 {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 191, 255, 0.1) 0%, rgba(0,0,0,0) 70%);
+            top: 600px;
+            left: -200px;
+            z-index: -1;
+        }
+
+        /* Навигация (Глассморфизм) */
+        header {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 1200px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .logo span {
+            color: var(--primary-glow);
+        }
+
+        nav a {
+            color: var(--text-main);
+            text-decoration: none;
+            margin-left: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--primary-glow);
+        }
+
+        /* Главный экран */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 120px 20px 60px 20px;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero h1 span {
+            color: var(--primary-glow);
+            text-shadow: 0 0 20px rgba(50, 205, 50, 0.3);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin-bottom: 40px;
+        }
+
+        .cta-btn {
+            background: transparent;
+            color: var(--text-main);
+            border: 2px solid var(--primary-glow);
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 0 15px rgba(50, 205, 50, 0.1);
+        }
+
+        .cta-btn:hover {
+            background: var(--primary-glow);
+            color: #000;
+            box-shadow: 0 0 25px rgba(50, 205, 50, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Секции общего назначения */
+        section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 80px 20px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 50px;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: var(--primary-glow);
+            border-radius: 2px;
+        }
+
+        /* Сетка скиллов */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+
+        .skill-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(5px);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .skill-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-glow);
+        }
+
+        .skill-card i {
+            font-size: 2.5rem;
+            color: var(--primary-glow);
+            margin-bottom: 20px;
+        }
+
+        .skill-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .skill-card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Секция проектов (Портфолио) */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .project-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        /* Заглушка вместо картинки, использующая CSS градиент */
+        .project-img-placeholder {
+            height: 200px;
+            background: linear-gradient(135deg, #161f32 0%, #0d1527 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: rgba(255,255,255,0.1);
+            border-bottom: 1px solid var(--glass-border);
+            position: relative;
+        }
+
+        .project-img-placeholder::before {
+            content: '</>';
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: rgba(50, 205, 50, 0.15);
+        }
+
+        .project-content {
+            padding: 25px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-content h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .project-content p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .project-tags span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            background: rgba(255,255,255,0.05);
+            padding: 4px 10px;
+            border-radius: 6px;
+            color: var(--primary-glow);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .project-link {
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+        }
+
+        .project-link:hover {
+            color: var(--primary-glow);
+        }
+
+        /* Секция Kwork призыва */
+        .kwork-section {
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(50, 205, 50, 0.05) 0%, rgba(0,0,0,0) 70%);
+            padding: 100px 20px;
+        }
+
+        .kwork-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            padding: 50px 30px;
+            border-radius: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .kwork-box h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .kwork-box p {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        /* Футер */
+        footer {
+            border-top: 1px solid var(--glass-border);
+            padding: 30px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Адаптивность для мобилок */
+        @media (max-width: 768px) {
+            header {
+                padding: 15px 20px;
+            }
+            nav a {
+                margin-left: 12px;
+                font-size: 0.8rem;
+            }
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .hero p {
+                font-size: 1rem;
+            }
+            .section-title {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+
+    <!-- Шапка сайта -->
+    <header>
+        <div class="logo">DEV<span>.</span></div>
+        <nav>
+            <a href="#skills">Навыки</a>
+            <a href="#projects">Проекты</a>
+            <a href="#order">Заказать</a>
+        </nav>
+    </header>
+
+    <!-- Главный баннер -->
+    <section class="hero">
+        <h1>Качественная верстка и <br><span>Разработка интерфейсов</span></h1>
+        <p>Создаю адаптивные, быстрые и современные сайты. Специализируюсь на чистом HTML/CSS коде, интерактивных веб-приложениях и интеграциях.</p>
+        <a href="#projects" class="cta-btn">Посмотреть работы</a>
+    </section>
+
+    <!-- Блок навыков -->
+    <section id="skills">
+        <h2 class="section-title">Что я умею</h2>
+        <div class="skills-grid">
+            <div class="skill-card">
+                <i class="fa-brands fa-html5"></i>
+                <h3>Адаптивная верстка</h3>
+                <p>Валидный, семантичный код HTML5 и современные стили CSS3 (Flexbox, Grid). Сайты отлично смотрятся на смартфонах и ПК.</p>
+            </div>
+            <div class="skill-card">
+                <i class="fa-brands fa-js"></i>
+                <h3>Интерактивность (JS)</h3>
+                <p>Оживление интерфейсов: анимации, кастомные слайдеры, модальные окна, интеграция скриптов и работа с API.</p>
+            </div>
+            <div class="skill-card">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <h3>Современные стили</h3>
+                <p>Уверенно создаю трендовые интерфейсы — от строгого минимализма до красивого Glassmorphism эффекта с размытием.</p>
+            </div>
+            <div class="skill-card">
+                <i class="fa-solid fa-cubes"></i>
+                <h3>3D & Web-приложения</h3>
+                <p>Опыт интеграции веб-модулей, игровых прототипов, работы с канвасом (Canvas) и сложной логикой элементов.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Блок портфолио -->
+    <section id="projects">
+        <h2 class="section-title">Мои проекты</h2>
+        <div class="projects-grid">
+            
+            <!-- Проект 1 -->
+            <div class="project-card">
+                <div class="project-img-placeholder"></div>
+                <div class="project-content">
+                    <h3>Web-Messenger TIMATE</h3>
+                    <p>Разработка интерфейса мультиплатформенного мессенджера. Современный дизайн, оптимизированная кодовая база, кастомные элементы управления.</p>
+                    <div class="project-tags">
+                        <span>HTML5</span>
+                        <span>CSS3</span>
+                        <span>UI/UX</span>
+                        <span>Design</span>
+                    </div>
+                    <a href="#" class="project-link" target="_blank">Смотреть демо <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                </div>
+            </div>
+
+            <!-- Проект 2 -->
+            <div class="project-card">
+                <div class="project-img-placeholder"></div>
+                <div class="project-content">
+                    <h3>Snake RTX (Three.js Web Game)</h3>
+                    <p>Интерактивная браузерная 3D-игра с кастомными шейдерами, продвинутым визуалом и таблицей лидеров. Отличный пример работы с JS логикой.</p>
+                    <div class="project-tags">
+                        <span>JavaScript</span>
+                        <span>Three.js</span>
+                        <span>Web Canvas</span>
+                    </div>
+                    <a href="#" class="project-link" target="_blank">Смотреть демо <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                </div>
+            </div>
+
+            <!-- Проект 3 -->
+            <div class="project-card">
+                <div class="project-img-placeholder"></div>
+                <div class="project-content">
+                    <h3>Windows 12 Apex Edition</h3>
+                    <p>Концепт веб-операционной системы. Реализованы модули Проводника (Explorer), Магазина приложений (AppStore) и плавающие окна.</p>
+                    <div class="project-tags">
+                        <span>HTML/CSS</span>
+                        <span>JS Web OS</span>
+                        <span>Glassmorphism</span>
+                    </div>
+                    <a href="#" class="project-link" target="_blank">Смотреть демо <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Блок заказа (для клиентов Kwork) -->
+    <section id="order" class="kwork-section">
+        <div class="kwork-box">
+            <h2>Готовы запустить проект?</h2>
+            <p>Нужна качественная верстка, адаптивный лендинг или интерактивный скрипт? Напишите мне на Kwork. Обсудим детали, ТЗ и сделаем все в лучшем виде и точно в срок!</p>
+            <a href="https://kwork.ru" class="cta-btn" target="_blank"><i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Открыть Kwork</a>
+        </div>
+    </section>
+
+    <!-- Подвал -->
+    <footer>
+        <p>&copy; 2026. Портфолио веб-разработчика. Сделано с душой.</p>
+    </footer>
+
+</body>
+</html>
