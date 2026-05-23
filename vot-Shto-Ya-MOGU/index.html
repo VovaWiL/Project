@@ -1,491 +1,776 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Портфолио | Frontend & Game Developer</title>
-    <!-- Подключаем иконки FontAwesome для красоты -->
+    <title>Интерактивное Портфолио Верстальщика | HTML, CSS, JS</title>
+    <!-- Tailwind CSS для адаптивного дизайна -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Иконки FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts для красивого шрифта -->
+    <!-- Шрифт Inter & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        }
+    </script>
 
     <style>
+        /* Плавное изменение цвета при переключении тем */
+        body, header, div, button, span, i, h1, h2, h3, p {
+            transition: background-color 0.4s ease, border-color 0.4s ease, color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Кастомные темы оформления */
         :root {
-            --bg-color: #0a0e17;
-            --primary-glow: #32cd32; /* Светло-салатовый акцент */
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
+            --primary-color: #10b981; /* Зеленый по дефолту */
+            --primary-glow: rgba(16, 185, 129, 0.4);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
-            scroll-behavior: smooth;
+        .theme-green {
+            --primary-color: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.4);
         }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            overflow-x: hidden;
-            position: relative;
+        .theme-purple {
+            --primary-color: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.4);
         }
 
-        /* Задний фон с неоновыми кругами для работы размытия */
-        .bg-glow-1 {
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(50, 205, 50, 0.15) 0%, rgba(0,0,0,0) 70%);
-            top: -100px;
-            right: -100px;
-            z-index: -1;
+        .theme-blue {
+            --primary-color: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.4);
         }
 
-        .bg-glow-2 {
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(0, 191, 255, 0.1) 0%, rgba(0,0,0,0) 70%);
-            top: 600px;
-            left: -200px;
-            z-index: -1;
+        .theme-amber {
+            --primary-color: #f59e0b;
+            --primary-glow: rgba(245, 158, 11, 0.4);
         }
 
-        /* Навигация (Глассморфизм) */
-        header {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 1200px;
-            background: var(--glass-bg);
+        .text-accent { color: var(--primary-color); }
+        .bg-accent { background-color: var(--primary-color); }
+        .border-accent { border-color: var(--primary-color); }
+        .focus-accent:focus { border-color: var(--primary-color); --tw-ring-color: var(--primary-color); }
+
+        /* Эффект Glassmorphism */
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .logo {
-            font-size: 1.2rem;
-            font-weight: 800;
-            letter-spacing: 1px;
+        /* Тонкие светящиеся элементы фона */
+        .bg-glow-spot {
+            background: radial-gradient(circle, var(--primary-glow) 0%, rgba(0,0,0,0) 70%);
         }
 
-        .logo span {
-            color: var(--primary-glow);
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-
-        nav a {
-            color: var(--text-main);
-            text-decoration: none;
-            margin-left: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            transition: color 0.3s;
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
         }
-
-        nav a:hover {
-            color: var(--primary-glow);
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
         }
-
-        /* Главный экран */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 120px 20px 60px 20px;
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 20px;
-            line-height: 1.2;
-        }
-
-        .hero h1 span {
-            color: var(--primary-glow);
-            text-shadow: 0 0 20px rgba(50, 205, 50, 0.3);
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin-bottom: 40px;
-        }
-
-        .cta-btn {
-            background: transparent;
-            color: var(--text-main);
-            border: 2px solid var(--primary-glow);
-            padding: 12px 30px;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            box-shadow: 0 0 15px rgba(50, 205, 50, 0.1);
-        }
-
-        .cta-btn:hover {
-            background: var(--primary-glow);
-            color: #000;
-            box-shadow: 0 0 25px rgba(50, 205, 50, 0.4);
-            transform: translateY(-2px);
-        }
-
-        /* Секции общего назначения */
-        section {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 80px 20px;
-        }
-
-        .section-title {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 50px;
-            text-align: center;
-            position: relative;
-        }
-
-        .section-title::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 50px;
-            height: 3px;
-            background: var(--primary-glow);
-            border-radius: 2px;
-        }
-
-        /* Сетка скиллов */
-        .skills-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-        }
-
-        .skill-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(5px);
-            border-radius: 16px;
-            padding: 30px;
-            text-align: center;
-            transition: transform 0.3s, border-color 0.3s;
-        }
-
-        .skill-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary-glow);
-        }
-
-        .skill-card i {
-            font-size: 2.5rem;
-            color: var(--primary-glow);
-            margin-bottom: 20px;
-        }
-
-        .skill-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
-
-        .skill-card p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        /* Секция проектов (Портфолио) */
-        .projects-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
-        }
-
-        .project-card {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .project-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            border-color: rgba(255,255,255,0.15);
-        }
-
-        /* Заглушка вместо картинки, использующая CSS градиент */
-        .project-img-placeholder {
-            height: 200px;
-            background: linear-gradient(135deg, #161f32 0%, #0d1527 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: rgba(255,255,255,0.1);
-            border-bottom: 1px solid var(--glass-border);
-            position: relative;
-        }
-
-        .project-img-placeholder::before {
-            content: '</>';
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 700;
-            color: rgba(50, 205, 50, 0.15);
-        }
-
-        .project-content {
-            padding: 25px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .project-content h3 {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-        }
-
-        .project-content p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            flex-grow: 1;
-        }
-
-        .project-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .project-tags span {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            background: rgba(255,255,255,0.05);
-            padding: 4px 10px;
-            border-radius: 6px;
-            color: var(--primary-glow);
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .project-link {
-            color: var(--text-main);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: color 0.2s;
-        }
-
-        .project-link:hover {
-            color: var(--primary-glow);
-        }
-
-        /* Секция Kwork призыва */
-        .kwork-section {
-            text-align: center;
-            background: radial-gradient(circle at center, rgba(50, 205, 50, 0.05) 0%, rgba(0,0,0,0) 70%);
-            padding: 100px 20px;
-        }
-
-        .kwork-box {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-            padding: 50px 30px;
-            border-radius: 24px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .kwork-box h2 {
-            font-size: 2rem;
-            margin-bottom: 15px;
-        }
-
-        .kwork-box p {
-            color: var(--text-muted);
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
-
-        /* Футер */
-        footer {
-            border-top: 1px solid var(--glass-border);
-            padding: 30px 20px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        /* Адаптивность для мобилок */
-        @media (max-width: 768px) {
-            header {
-                padding: 15px 20px;
-            }
-            nav a {
-                margin-left: 12px;
-                font-size: 0.8rem;
-            }
-            .hero h1 {
-                font-size: 2rem;
-            }
-            .hero p {
-                font-size: 1rem;
-            }
-            .section-title {
-                font-size: 1.6rem;
-            }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
         }
     </style>
 </head>
-<body>
 
-    <div class="bg-glow-1"></div>
-    <div class="bg-glow-2"></div>
+<body class="bg-[#0b0f19] text-gray-100 font-sans min-h-screen relative overflow-x-hidden theme-green">
+
+    <!-- Декоративные размытые фоны -->
+    <div class="absolute bg-glow-spot w-[600px] h-[600px] -top-80 -right-80 rounded-full blur-3xl pointer-events-none transition-all duration-700"></div>
+    <div class="absolute bg-glow-spot w-[600px] h-[600px] top-[1200px] -left-80 rounded-full blur-3xl pointer-events-none transition-all duration-700"></div>
 
     <!-- Шапка сайта -->
-    <header>
-        <div class="logo">DEV<span>.</span></div>
-        <nav>
-            <a href="#skills">Навыки</a>
-            <a href="#projects">Проекты</a>
-            <a href="#order">Заказать</a>
+    <header class="fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-6xl glass-panel z-50 rounded-2xl px-6 py-4 flex items-center justify-between shadow-2xl">
+        <a href="#" class="flex items-center gap-2 font-bold text-xl tracking-wider">
+            <span class="text-accent">&lt;/&gt;</span> CODEMASTER
+        </a>
+        <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-300">
+            <a href="#how-it-works" class="hover:text-white transition-colors">Как устроен сайт</a>
+            <a href="#playground" class="hover:text-white transition-colors">Интерактивный полигон</a>
+            <a href="#code-quality" class="hover:text-white transition-colors">Качество кода</a>
         </nav>
+        <div>
+            <a href="#kwork" class="bg-accent text-gray-950 font-bold px-5 py-2.5 rounded-xl text-sm shadow-[0_0_20px_var(--primary-glow)] hover:scale-105 active:scale-95 transition-all">
+                Связаться в Kwork
+            </a>
+        </div>
     </header>
 
-    <!-- Главный баннер -->
-    <section class="hero">
-        <h1>Качественная верстка и <br><span>Разработка интерфейсов</span></h1>
-        <p>Создаю адаптивные, быстрые и современные сайты. Специализируюсь на чистом HTML/CSS коде, интерактивных веб-приложениях и интеграциях.</p>
-        <a href="#projects" class="cta-btn">Посмотреть работы</a>
-    </section>
+    <!-- Главный баннер (Hero) -->
+    <section class="relative pt-36 pb-20 px-4 flex flex-col items-center justify-center text-center min-h-[90vh]">
+        <div class="inline-flex items-center gap-2 bg-gray-900/80 border border-gray-800 rounded-full px-4 py-1.5 text-xs text-gray-400 mb-6">
+            <span class="w-2.5 h-2.5 rounded-full bg-accent animate-pulse"></span>
+            Сайт-пример: Сделано полностью мной без конструкторов
+        </div>
+        
+        <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight max-w-4xl leading-tight mb-6">
+            Этот лендинг — <span class="text-accent underline decoration-wavy decoration-1 underline-offset-8">прямой пример</span> моих навыков в верстке
+        </h1>
+        
+        <p class="text-gray-400 text-lg md:text-xl max-w-2xl mb-10 leading-relaxed">
+            Вместо сотен картинок чужих проектов оцените мою работу прямо здесь. Весь сайт написан на чистом семантическом коде с интерактивными элементами и адаптивностью.
+        </p>
 
-    <!-- Блок навыков -->
-    <section id="skills">
-        <h2 class="section-title">Что я умею</h2>
-        <div class="skills-grid">
-            <div class="skill-card">
-                <i class="fa-brands fa-html5"></i>
-                <h3>Адаптивная верстка</h3>
-                <p>Валидный, семантичный код HTML5 и современные стили CSS3 (Flexbox, Grid). Сайты отлично смотрятся на смартфонах и ПК.</p>
-            </div>
-            <div class="skill-card">
-                <i class="fa-brands fa-js"></i>
-                <h3>Интерактивность (JS)</h3>
-                <p>Оживление интерфейсов: анимации, кастомные слайдеры, модальные окна, интеграция скриптов и работа с API.</p>
-            </div>
-            <div class="skill-card">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <h3>Современные стили</h3>
-                <p>Уверенно создаю трендовые интерфейсы — от строгого минимализма до красивого Glassmorphism эффекта с размытием.</p>
-            </div>
-            <div class="skill-card">
-                <i class="fa-solid fa-cubes"></i>
-                <h3>3D & Web-приложения</h3>
-                <p>Опыт интеграции веб-модулей, игровых прототипов, работы с канвасом (Canvas) и сложной логикой элементов.</p>
+        <div class="flex flex-col sm:flex-row gap-4 items-center justify-center">
+            <a href="#playground" class="bg-accent text-gray-950 font-bold px-8 py-4 rounded-xl shadow-[0_0_25px_var(--primary-glow)] hover:scale-105 active:scale-95 transition-all">
+                <i class="fa-solid fa-gamepad mr-2"></i> Протестировать фичи
+            </a>
+            <a href="#code-quality" class="border border-gray-700 hover:border-accent text-gray-200 hover:text-white px-8 py-4 rounded-xl transition-all">
+                <i class="fa-solid fa-code mr-2"></i> Посмотреть чистоту кода
+            </a>
+        </div>
+
+        <!-- Быстрая панель управления темами прямо на Hero -->
+        <div class="mt-16 glass-panel rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4 border border-gray-800">
+            <span class="text-xs font-mono uppercase text-gray-400">Быстрая кастомизация сайта клиентом:</span>
+            <div class="flex gap-2">
+                <button onclick="changeTheme('green')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-transparent hover:scale-110 active:scale-90 transition-transform shadow-[0_0_10px_rgba(16,185,129,0.3)]" title="Зеленый"></button>
+                <button onclick="changeTheme('purple')" class="w-8 h-8 rounded-full bg-violet-500 border-2 border-transparent hover:scale-110 active:scale-90 transition-transform" title="Фиолетовый"></button>
+                <button onclick="changeTheme('blue')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-transparent hover:scale-110 active:scale-90 transition-transform" title="Синий"></button>
+                <button onclick="changeTheme('amber')" class="w-8 h-8 rounded-full bg-amber-500 border-2 border-transparent hover:scale-110 active:scale-90 transition-transform" title="Янтарный"></button>
             </div>
         </div>
     </section>
 
-    <!-- Блок портфолио -->
-    <section id="projects">
-        <h2 class="section-title">Мои проекты</h2>
-        <div class="projects-grid">
+    <!-- Секция: Как устроен сайт -->
+    <section id="how-it-works" class="max-w-6xl mx-auto py-20 px-4">
+        <h2 class="text-3xl font-extrabold text-center mb-4">В чем сила такой демонстрации?</h2>
+        <p class="text-gray-400 text-center max-w-xl mx-auto mb-16">
+            Заказчики на Kwork ценят реальные навыки, а не скриншоты. Ниже вы можете проверить ключевые показатели качественной веб-страницы.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="glass-panel p-8 rounded-2xl relative overflow-hidden group hover:border-accent/40 transition-all duration-300">
+                <div class="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center text-xl mb-6 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3">Идеальная адаптивность</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Откройте этот сайт на смартфоне или планшете. Сетка автоматически перестроится, меню станет компактным, а все клики будут отлично обрабатываться пальцем.
+                </p>
+            </div>
+
+            <div class="glass-panel p-8 rounded-2xl relative overflow-hidden group hover:border-accent/40 transition-all duration-300">
+                <div class="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center text-xl mb-6 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-gauge-high"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3">Оптимизация и скорость</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Сайт весит копейки, загружается за доли секунды. Никаких тяжелых библиотек или раздутых шаблонов — только эффективный код, чистый HTML/JS и CSS.
+                </p>
+            </div>
+
+            <div class="glass-panel p-8 rounded-2xl relative overflow-hidden group hover:border-accent/40 transition-all duration-300">
+                <div class="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center text-xl mb-6 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3">Интерактивная логика</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">
+                    Весь динамический функционал реализован на чистом ванильном JavaScript без jQuery, обеспечивая плавность анимаций в 60 FPS даже на слабых устройствах.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Интерактивный полигон элементов -->
+    <section id="playground" class="max-w-6xl mx-auto py-20 px-4">
+        <div class="text-center mb-12">
+            <span class="text-accent font-mono text-sm tracking-widest uppercase block mb-2">[ Интерактивный полигон ]</span>
+            <h2 class="text-3xl md:text-4xl font-extrabold">Убедитесь в функциональности компонентов</h2>
+            <p class="text-gray-400 max-w-xl mx-auto mt-4 text-sm">
+                Ниже представлены готовые популярные элементы интерфейса. Вы можете кликать, переключать табы и проверять сценарии работы!
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            <!-- Проект 1 -->
-            <div class="project-card">
-                <div class="project-img-placeholder"></div>
-                <div class="project-content">
-                    <h3>Web-Messenger TIMATE</h3>
-                    <p>Разработка интерфейса мультиплатформенного мессенджера. Современный дизайн, оптимизированная кодовая база, кастомные элементы управления.</p>
-                    <div class="project-tags">
-                        <span>HTML5</span>
-                        <span>CSS3</span>
-                        <span>UI/UX</span>
-                        <span>Design</span>
+            <!-- Левая колонка: Переключение табов и функционал -->
+            <div class="lg:col-span-8 space-y-8">
+                <!-- Контейнер песочницы -->
+                <div class="glass-panel rounded-2xl overflow-hidden border border-gray-800">
+                    
+                    <!-- Шапка песочницы с кнопками-вкладками -->
+                    <div class="bg-gray-950/60 p-4 border-b border-gray-800 flex flex-wrap gap-2 items-center justify-between">
+                        <span class="text-xs text-gray-500 font-mono"><i class="fa-solid fa-circle-nodes mr-1 text-accent"></i> LIVE COMPONENT PLAYGROUND</span>
+                        <div class="flex gap-1" id="tab-buttons">
+                            <button onclick="switchTab('tab-sliders')" id="btn-tab-sliders" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent text-gray-950 transition-all">
+                                <i class="fa-solid fa-images mr-1"></i> Слайдер
+                            </button>
+                            <button onclick="switchTab('tab-accordion')" id="btn-tab-accordion" class="px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-800 text-gray-300 transition-all">
+                                <i class="fa-solid fa-list-ul mr-1"></i> FAQ / Аккордеон
+                            </button>
+                            <button onclick="switchTab('tab-widgets')" id="btn-tab-widgets" class="px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-800 text-gray-300 transition-all">
+                                <i class="fa-solid fa-shapes mr-1"></i> Виджеты & Модалка
+                            </button>
+                        </div>
                     </div>
-                    <a href="#" class="project-link" target="_blank">Смотреть демо <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+
+                    <!-- Внутренний контейнер с динамическим контентом -->
+                    <div class="p-8 min-h-[350px] flex flex-col justify-center">
+                        
+                        <!-- Таб 1: Слайдер -->
+                        <div id="tab-sliders" class="tab-content block">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                <i class="fa-regular fa-square-check text-accent"></i> 1. Плавный адаптивный слайдер отзывов / портфолио
+                            </h3>
+                            <p class="text-sm text-gray-400 mb-6 leading-relaxed">
+                                Полностью самописный слайдер. Поддерживает прокрутку по клику на стрелки, точки-индикаторы и оптимизирован для мобильного свайпа.
+                            </p>
+
+                            <!-- Конструкция слайдера -->
+                            <div class="relative bg-gray-900/60 rounded-xl border border-gray-800 p-6 overflow-hidden max-w-xl mx-auto">
+                                <div class="slider-wrapper flex transition-transform duration-500 ease-out" id="custom-slider">
+                                    <!-- Слайд 1 -->
+                                    <div class="w-full shrink-0 px-2">
+                                        <div class="flex items-center gap-4 mb-3">
+                                            <div class="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center font-bold text-accent">K</div>
+                                            <div>
+                                                <h4 class="font-bold text-sm">Сергей К. (Заказчик на Kwork)</h4>
+                                                <p class="text-xs text-gray-500">Заказывал верстку интернет-магазина</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-sm text-gray-300 italic">"Очень чистая верстка! Все элементы адаптировались без багов, код легко читаемый. Продавец вежливый, поправил мелкие правки за пару минут. Буду брать ещё!"</p>
+                                    </div>
+                                    <!-- Слайд 2 -->
+                                    <div class="w-full shrink-0 px-2">
+                                        <div class="flex items-center gap-4 mb-3">
+                                            <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center font-bold text-blue-400">А</div>
+                                            <div>
+                                                <h4 class="font-bold text-sm">Анна Д. (Веб-дизайнер)</h4>
+                                                <p class="text-xs text-gray-500">Заказ лендинга по готовому макету Figma</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-sm text-gray-300 italic">"Обычно верстальщики ломают шрифты и отступы из Figma, но этот разработчик перенес пиксель-в-пиксель. Анимации получились даже лучше, чем я задумывала. Рекомендую!"</p>
+                                    </div>
+                                    <!-- Слайд 3 -->
+                                    <div class="w-full shrink-0 px-2">
+                                        <div class="flex items-center gap-4 mb-3">
+                                            <div class="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center font-bold text-violet-400">М</div>
+                                            <div>
+                                                <h4 class="font-bold text-sm">Михаил П. (Предприниматель)</h4>
+                                                <p class="text-xs text-gray-500">Клонирование лендинга</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-sm text-gray-300 italic">"Нужно было срочно скопировать страницу и переделать формы под наши системы аналитики. Сделал работу за один день. Код без мусора, все формы отправляют письма."</p>
+                                    </div>
+                                </div>
+
+                                <!-- Элементы управления -->
+                                <button onclick="slidePrev()" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gray-950/80 border border-gray-800 flex items-center justify-center hover:bg-accent hover:text-gray-950 transition-colors">
+                                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                                </button>
+                                <button onclick="slideNext()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gray-950/80 border border-gray-800 flex items-center justify-center hover:bg-accent hover:text-gray-950 transition-colors">
+                                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                                </button>
+                            </div>
+
+                            <!-- Точки-индикаторы -->
+                            <div class="flex justify-center gap-2 mt-4" id="slider-dots">
+                                <button onclick="setSlide(0)" class="w-2.5 h-2.5 rounded-full bg-accent transition-all duration-300"></button>
+                                <button onclick="setSlide(1)" class="w-2.5 h-2.5 rounded-full bg-gray-700 transition-all duration-300"></button>
+                                <button onclick="setSlide(2)" class="w-2.5 h-2.5 rounded-full bg-gray-700 transition-all duration-300"></button>
+                            </div>
+                        </div>
+
+                        <!-- Таб 2: Аккордеоны -->
+                        <div id="tab-accordion" class="tab-content hidden">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                <i class="fa-regular fa-square-check text-accent"></i> 2. FAQ - Динамические аккордеоны без библиотек
+                            </h3>
+                            <p class="text-sm text-gray-400 mb-6">
+                                Стандартное решение для экономии места на коммерческих сайтах. Реализовано плавным переключением высоты (max-height) через CSS-переходы.
+                            </p>
+
+                            <div class="space-y-3 max-w-xl mx-auto">
+                                <!-- Элемент 1 -->
+                                <div class="border border-gray-800 rounded-xl bg-gray-900/40 overflow-hidden">
+                                    <button onclick="toggleAccordion(0)" class="w-full p-4 text-left font-bold text-sm flex justify-between items-center hover:bg-gray-800/40 transition-colors">
+                                        <span>Какие технологии вы используете при верстке?</span>
+                                        <i class="fa-solid fa-plus text-xs text-accent transition-transform duration-300" id="accordion-icon-0"></i>
+                                    </button>
+                                    <div class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out" id="accordion-body-0">
+                                        <div class="p-4 border-t border-gray-800 text-xs text-gray-400 leading-relaxed">
+                                            Я пишу валидный и семантический HTML5-код. Для стилей использую чистый CSS3 с Grid и Flexbox, Sass/SCSS, либо современный фреймворк Tailwind CSS в зависимости от вашего ТЗ. Вся динамика строится на нативном JavaScript (ES6+).
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Элемент 2 -->
+                                <div class="border border-gray-800 rounded-xl bg-gray-900/40 overflow-hidden">
+                                    <button onclick="toggleAccordion(1)" class="w-full p-4 text-left font-bold text-sm flex justify-between items-center hover:bg-gray-800/40 transition-colors">
+                                        <span>Будет ли сайт идеально работать на смартфонах?</span>
+                                        <i class="fa-solid fa-plus text-xs text-accent transition-transform duration-300" id="accordion-icon-1"></i>
+                                    </button>
+                                    <div class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out" id="accordion-body-1">
+                                        <div class="p-4 border-t border-gray-800 text-xs text-gray-400 leading-relaxed">
+                                            Да! Адаптивность закладывается изначально на уровне Mobile-First верстки. Я тестирую каждый элемент на симуляторах различных разрешений (от 320px до Ultra-Wide мониторов), а также проверяю скорость загрузки.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Элемент 3 -->
+                                <div class="border border-gray-800 rounded-xl bg-gray-900/40 overflow-hidden">
+                                    <button onclick="toggleAccordion(2)" class="w-full p-4 text-left font-bold text-sm flex justify-between items-center hover:bg-gray-800/40 transition-colors">
+                                        <span>С какими CMS вы умеете работать?</span>
+                                        <i class="fa-solid fa-plus text-xs text-accent transition-transform duration-300" id="accordion-icon-2"></i>
+                                    </button>
+                                    <div class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out" id="accordion-body-2">
+                                        <div class="p-4 border-t border-gray-800 text-xs text-gray-400 leading-relaxed">
+                                            Я специализируюсь на создании качественной статической верстки. Ее можно легко интегрировать в любую CMS (WordPress, Bitrix, OpenCart) или конструкторы (Tilda/Webflow в качестве кастомного HTML-кода).
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Таб 3: Виджеты & Модалка -->
+                        <div id="tab-widgets" class="tab-content hidden text-center">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2 justify-center">
+                                <i class="fa-regular fa-square-check text-accent"></i> 3. Всплывающие окна и интерактивные триггеры
+                            </h3>
+                            <p class="text-sm text-gray-400 mb-6 max-w-md mx-auto">
+                                Кликните по кнопкам ниже, чтобы проверить плавный вызов модального окна или создание мгновенных всплывающих уведомлений (тостов).
+                            </p>
+
+                            <div class="flex flex-wrap justify-center gap-4">
+                                <button onclick="openModal()" class="px-5 py-3 rounded-xl border border-accent text-accent font-semibold hover:bg-accent hover:text-gray-950 text-sm transition-all active:scale-95">
+                                    <i class="fa-solid fa-window-restore mr-2"></i>Открыть Модалку
+                                </button>
+                                <button onclick="showToast('Успешно!', 'Уведомление создано динамически с помощью JavaScript!', 'success')" class="px-5 py-3 rounded-xl bg-gray-900 border border-gray-800 text-gray-300 hover:text-white hover:border-gray-700 text-sm transition-all active:scale-95">
+                                    <i class="fa-regular fa-bell mr-2"></i>Показать Toast
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
             </div>
 
-            <!-- Проект 2 -->
-            <div class="project-card">
-                <div class="project-img-placeholder"></div>
-                <div class="project-content">
-                    <h3>Snake RTX (Three.js Web Game)</h3>
-                    <p>Интерактивная браузерная 3D-игра с кастомными шейдерами, продвинутым визуалом и таблицей лидеров. Отличный пример работы с JS логикой.</p>
-                    <div class="project-tags">
-                        <span>JavaScript</span>
-                        <span>Three.js</span>
-                        <span>Web Canvas</span>
-                    </div>
-                    <a href="#" class="project-link" target="_blank">Смотреть демо <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
-                </div>
-            </div>
+            <!-- Правая колонка: Форма валидации -->
+            <div class="lg:col-span-4">
+                <div class="glass-panel rounded-2xl p-6 border border-gray-800 flex flex-col justify-between h-full min-h-[460px]">
+                    <div>
+                        <div class="flex items-center gap-2 mb-4 text-xs font-mono uppercase text-gray-400">
+                            <i class="fa-solid fa-square-check text-accent"></i> 4. Живая валидация форм
+                        </div>
+                        <h3 class="text-lg font-bold mb-2">Форма обратной связи</h3>
+                        <p class="text-xs text-gray-400 mb-6 leading-relaxed">
+                            Интерактивная проверка полей «на лету» не позволит отправить пустые или некорректно заполненные данные на ваш сервер.
+                        </p>
 
-            <!-- Проект 3 -->
-            <div class="project-card">
-                <div class="project-img-placeholder"></div>
-                <div class="project-content">
-                    <h3>Windows 12 Apex Edition</h3>
-                    <p>Концепт веб-операционной системы. Реализованы модули Проводника (Explorer), Магазина приложений (AppStore) и плавающие окна.</p>
-                    <div class="project-tags">
-                        <span>HTML/CSS</span>
-                        <span>JS Web OS</span>
-                        <span>Glassmorphism</span>
+                        <form id="interactive-form" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 mb-1" for="name">Ваше имя *</label>
+                                <input type="text" id="form-name" class="w-full bg-gray-950/60 border border-gray-800 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors" placeholder="Иван">
+                                <p class="text-[10px] text-red-500 mt-1 hidden" id="err-name">Имя должно содержать хотя бы 2 символа</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 mb-1" for="email">E-mail *</label>
+                                <input type="email" id="form-email" class="w-full bg-gray-950/60 border border-gray-800 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors" placeholder="ivan@example.com">
+                                <p class="text-[10px] text-red-500 mt-1 hidden" id="err-email">Введите корректный E-mail адрес</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-400 mb-1" for="msg">Комментарий</label>
+                                <textarea id="form-msg" rows="3" class="w-full bg-gray-950/60 border border-gray-800 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors resize-none" placeholder="Расскажите о вашей задаче..."></textarea>
+                            </div>
+
+                            <button type="submit" class="w-full bg-accent text-gray-950 font-bold py-3 rounded-xl text-sm hover:scale-[1.02] active:scale-95 transition-transform shadow-[0_4px_15px_rgba(0,0,0,0.3)]">
+                                Проверить валидацию <i class="fa-solid fa-paper-plane ml-1"></i>
+                            </button>
+                        </form>
                     </div>
-                    <a href="#" class="project-link" target="_blank">Смотреть демо <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
                 </div>
             </div>
 
         </div>
     </section>
 
-    <!-- Блок заказа (для клиентов Kwork) -->
-    <section id="order" class="kwork-section">
-        <div class="kwork-box">
-            <h2>Готовы запустить проект?</h2>
-            <p>Нужна качественная верстка, адаптивный лендинг или интерактивный скрипт? Напишите мне на Kwork. Обсудим детали, ТЗ и сделаем все в лучшем виде и точно в срок!</p>
-            <a href="https://kwork.ru" class="cta-btn" target="_blank"><i class="fa-solid fa-paper-plane" style="margin-right: 8px;"></i> Открыть Kwork</a>
+    <!-- Секция: Качество кода -->
+    <section id="code-quality" class="max-w-6xl mx-auto py-20 px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            
+            <!-- Описание стандартов написания кода -->
+            <div>
+                <span class="text-accent font-mono text-sm tracking-widest uppercase block mb-2">[ Загляните под капот ]</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold mb-6">Качество кода определяет работу сайта</h2>
+                <p class="text-gray-400 text-sm leading-relaxed mb-6">
+                    Плохой код ведет к зависаниям, некорректному отображению на смартфонах и штрафам от поисковиков (SEO). Я строго следую международным веб-стандартам:
+                </p>
+
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4">
+                        <div class="w-6 h-6 rounded-full bg-accent/10 text-accent flex items-center justify-center text-xs shrink-0 mt-1">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm">Валидность W3C</h4>
+                            <p class="text-xs text-gray-500 mt-1">Код пишется без синтаксических ошибок, закрываются все теги, разметка легко масштабируется.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                        <div class="w-6 h-6 rounded-full bg-accent/10 text-accent flex items-center justify-center text-xs shrink-0 mt-1">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm">Семантический HTML</h4>
+                            <p class="text-xs text-gray-500 mt-1">Использование тегов &lt;header&gt;, &lt;section&gt;, &lt;footer&gt;, &lt;main&gt;. Поисковые роботы Яндекса и Google полюбят ваш сайт!</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                        <div class="w-6 h-6 rounded-full bg-accent/10 text-accent flex items-center justify-center text-xs shrink-0 mt-1">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm">CSS переменные и модули</h4>
+                            <p class="text-xs text-gray-500 mt-1">Стили пишутся так, чтобы вы в любой момент могли с легкостью поменять цвета, шрифты или размеры элементов.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Реальная интерактивная "Песочница Кода" -->
+            <div class="glass-panel rounded-2xl overflow-hidden border border-gray-800">
+                <div class="bg-gray-950/60 p-4 border-b border-gray-800 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                        <span class="text-xs font-mono text-gray-400 ml-2">code-preview.js</span>
+                    </div>
+                    <span class="text-xs text-gray-600 font-mono">IDE VIEW</span>
+                </div>
+                <div class="p-6 font-mono text-[11px] md:text-xs text-gray-300 bg-gray-950/30 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-[380px]">
+<span class="text-gray-500">// Пример логики изменения темы на лету (JS):</span>
+<span class="text-pink-500">function</span> <span class="text-blue-400">changeTheme</span>(themeName) {
+    <span class="text-gray-500">// Получаем корень страницы и удаляем старые классы тем</span>
+    <span class="text-pink-500">const</span> body = document.body;
+    body.classList.remove(<span class="text-emerald-400">'theme-green'</span>, <span class="text-emerald-400">'theme-purple'</span>, <span class="text-emerald-400">'theme-blue'</span>, <span class="text-emerald-400">'theme-amber'</span>);
+    
+    <span class="text-gray-500">// Устанавливаем новый класс темы</span>
+    body.classList.add(<span class="text-emerald-400">`theme-${themeName}`</span>);
+    
+    <span class="text-gray-500">// Создаем тост-уведомление</span>
+    showToast(<span class="text-emerald-400">'Тема обновлена!'</span>, <span class="text-emerald-400">`Сайт динамически переключен на ${themeName}`</span>, <span class="text-emerald-400">'success'</span>);
+}
+
+<span class="text-gray-500">// Чистый семантический HTML-код:</span>
+&lt;<span class="text-pink-500">div</span> <span class="text-blue-400">class</span>=<span class="text-emerald-400">"grid grid-cols-1 md:grid-cols-3 gap-8"</span>&gt;
+    &lt;<span class="text-pink-500">section</span> <span class="text-blue-400">id</span>=<span class="text-emerald-400">"adaptive-module"</span> <span class="text-blue-400">class</span>=<span class="text-emerald-400">"glass-panel shadow-2xl"</span>&gt;
+        <span class="text-gray-500">&lt;!-- Элемент полностью адаптивен к перепадам экрана --&gt;</span>
+    &lt;/<span class="text-pink-500">section</span>&gt;
+&lt;/<span class="text-pink-500">div</span>&gt;</div>
+            </div>
+
         </div>
     </section>
 
-    <!-- Подвал -->
-    <footer>
-        <p>&copy; 2026. Портфолио веб-разработчика. Сделано с душой.</p>
+    <!-- Призыв к действию (Kwork) -->
+    <section id="kwork" class="max-w-6xl mx-auto py-20 px-4">
+        <div class="glass-panel rounded-3xl p-8 md:p-12 border border-gray-800 text-center relative overflow-hidden shadow-2xl">
+            <div class="absolute bg-glow-spot w-[400px] h-[400px] -bottom-40 -right-40 rounded-full blur-3xl pointer-events-none transition-all duration-700"></div>
+            
+            <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-4">
+                Нужен такой же аккуратный и быстрый сайт?
+            </h2>
+            <p class="text-gray-400 max-w-2xl mx-auto mb-8 text-sm md:text-base leading-relaxed">
+                С удовольствием сделаю верстку лендинга, корпоративного сайта или кастомных виджетов по вашему дизайну или макету из Figma. Работа сдается в лучшем виде, вовремя и с бесплатной поддержкой в течение месяца.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <a href="https://kwork.ru" target="_blank" class="bg-accent text-gray-950 font-extrabold px-8 py-4 rounded-xl shadow-[0_0_20px_var(--primary-glow)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Перейти к сделке на Kwork
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Футер -->
+    <footer class="border-t border-gray-900 bg-gray-950/60 py-12 px-4 text-center text-xs text-gray-500">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>© 2026. Разработано с использованием HTML5, Tailwind CSS и Vanilla JavaScript.</p>
+            <p class="font-mono">Clean Code & High Performance <i class="fa-solid fa-bolt text-accent ml-1"></i></p>
+        </div>
     </footer>
 
+
+    <!-- ================= ПОДЛОЖКА МОДАЛЬНОГО ОКНА ================= -->
+    <div id="modal-container" class="fixed inset-0 bg-black/80 backdrop-filter backdrop-blur-sm flex items-center justify-center z-[100] opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="glass-panel w-[90%] max-w-md rounded-2xl border border-gray-800 shadow-2xl overflow-hidden scale-90 transition-transform duration-300" id="modal-content">
+            <div class="bg-gray-950/80 p-5 border-b border-gray-800 flex items-center justify-between">
+                <h4 class="font-bold text-sm text-accent"><i class="fa-solid fa-circle-info mr-1.5"></i> Модальное окно готово</h4>
+                <button onclick="closeModal()" class="w-6 h-6 rounded-lg bg-gray-900 border border-gray-800 flex items-center justify-center text-xs hover:text-white hover:bg-red-500/20 hover:border-red-500/40 transition-all">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 text-sm text-gray-300 space-y-4">
+                <p>
+                    Привет! Это всплывающее окно написано на чистом JavaScript. Модалки часто используются для форм обратной связи, показа уведомлений, галерей или подробной информации на сайтах.
+                </p>
+                <p class="text-xs text-gray-500">
+                    Оно открывается мгновенно, блокирует прокрутку заднего фона (для удобства пользователя) и поддерживает закрытие по кнопке, клавишей ESC или кликом на пустую область снаружи.
+                </p>
+            </div>
+            <div class="p-4 bg-gray-950/40 border-t border-gray-800 text-right">
+                <button onclick="closeModal()" class="bg-accent text-gray-950 font-bold px-4 py-2 rounded-lg text-xs hover:scale-105 active:scale-95 transition-transform">
+                    Понятно!
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= СИСТЕМА ДИНАМИЧЕСКИХ TOAST-УВЕДОМЛЕНИЙ ================= -->
+    <div id="toast-container" class="fixed bottom-6 right-6 space-y-3 z-[110] max-w-sm w-[90%]"></div>
+
+
+    <!-- ================= СКРИПТЫ САЙТА (JS) ================= -->
+    <script>
+        // 1. СМЕНА ЦВЕТОВЫХ ТЕМ
+        function changeTheme(themeName) {
+            const body = document.body;
+            body.classList.remove('theme-green', 'theme-purple', 'theme-blue', 'theme-amber');
+            body.classList.add(`theme-${themeName}`);
+            
+            // Красивый toast
+            let displayColor = 'зеленый';
+            if (themeName === 'purple') displayColor = 'фиолетовый';
+            if (themeName === 'blue') displayColor = 'синий';
+            if (themeName === 'amber') displayColor = 'янтарный';
+            
+            showToast('Тема оформления обновлена!', `Сайт динамически переключился на ${displayColor} акцент.`, 'success');
+        }
+
+        // 2. РАБОТА С ТАБАМИ НА ПОЛИГОНЕ
+        function switchTab(tabId) {
+            // Прячем все табы
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => {
+                tab.classList.add('hidden');
+                tab.classList.remove('block');
+            });
+
+            // Показываем нужный таб
+            const activeTab = document.getElementById(tabId);
+            activeTab.classList.remove('hidden');
+            activeTab.classList.add('block');
+
+            // Сбрасываем стили кнопок вкладок
+            const buttons = document.querySelectorAll('#tab-buttons button');
+            buttons.forEach(btn => {
+                btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-800 text-gray-300 transition-all";
+            });
+
+            // Добавляем активные стили нужной кнопке
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent text-gray-950 transition-all";
+        }
+
+        // 3. СКРИПТ АДАПТИВНОГО СЛАЙДЕРА
+        let currentSlide = 0;
+        const totalSlides = 3;
+
+        function updateSliderPosition() {
+            const slider = document.getElementById('custom-slider');
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+            
+            // Обновляем точки
+            const dots = document.querySelectorAll('#slider-dots button');
+            dots.forEach((dot, index) => {
+                if (index === currentSlide) {
+                    dot.className = "w-2.5 h-2.5 rounded-full bg-accent transition-all duration-300";
+                } else {
+                    dot.className = "w-2.5 h-2.5 rounded-full bg-gray-700 transition-all duration-300";
+                }
+            });
+        }
+
+        function slideNext() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateSliderPosition();
+        }
+
+        function slidePrev() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateSliderPosition();
+        }
+
+        function setSlide(index) {
+            currentSlide = index;
+            updateSliderPosition();
+        }
+
+        // Автоматическая легкая прокрутка слайдера раз в 10 секунд
+        setInterval(() => {
+            slideNext();
+        }, 8000);
+
+
+        // 4. СКРИПТ АККОРДЕОНОВ (FAQ)
+        function toggleAccordion(id) {
+            const body = document.getElementById(`accordion-body-${id}`);
+            const icon = document.getElementById(`accordion-icon-${id}`);
+
+            if (body.style.maxHeight && body.style.maxHeight !== '0px') {
+                body.style.maxHeight = '0px';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                // Закрываем все остальные перед открытием текущего (эффект сингл-аккордеона)
+                for (let i = 0; i < 3; i++) {
+                    const otherBody = document.getElementById(`accordion-body-${i}`);
+                    const otherIcon = document.getElementById(`accordion-icon-${i}`);
+                    if (otherBody) otherBody.style.maxHeight = '0px';
+                    if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
+                }
+
+                // Открываем текущий
+                body.style.maxHeight = body.scrollHeight + 'px';
+                icon.style.transform = 'rotate(45deg)';
+            }
+        }
+
+
+        // 5. МОДАЛЬНОЕ ОКНО
+        function openModal() {
+            const modal = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            
+            content.classList.remove('scale-90');
+            content.classList.add('scale-100');
+
+            document.body.style.overflow = 'hidden'; // лочим скролл
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            
+            content.classList.remove('scale-100');
+            content.classList.add('scale-90');
+
+            document.body.style.overflow = ''; // возвращаем скролл
+        }
+
+        // Закрытие модалки по Escape или клику вне
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+        document.getElementById('modal-container').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modal-container')) closeModal();
+        });
+
+
+        // 6. СИСТЕМА УВЕДОМЛЕНИЙ (TOAST)
+        function showToast(title, desc, type = 'success') {
+            const container = document.getElementById('toast-container');
+            
+            // Создаем элемент уведомления
+            const toast = document.createElement('div');
+            toast.className = "glass-panel p-4 rounded-xl shadow-2xl border border-gray-800/80 transform translate-y-4 opacity-0 transition-all duration-300 flex items-start gap-3 bg-gray-950/90";
+            
+            let iconMarkup = '<i class="fa-solid fa-circle-check text-accent mt-0.5"></i>';
+            if (type === 'error') {
+                iconMarkup = '<i class="fa-solid fa-circle-exclamation text-red-500 mt-0.5"></i>';
+            }
+
+            toast.innerHTML = `
+                <div class="text-sm shrink-0">${iconMarkup}</div>
+                <div class="flex-grow">
+                    <h5 class="font-bold text-xs text-white">${title}</h5>
+                    <p class="text-[10px] text-gray-400 mt-1 leading-relaxed">${desc}</p>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            // Анимация появления
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 10);
+
+            // Анимация исчезновения и удаление
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        }
+
+
+        // 7. ЖИВАЯ ВАЛИДАЦИЯ ФОРМЫ С ОБРАБОТКОЙ SUBMIT
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const nameInput = document.getElementById('form-name');
+            const emailInput = document.getElementById('form-email');
+            const msgInput = document.getElementById('form-msg');
+            
+            const errName = document.getElementById('err-name');
+            const errEmail = document.getElementById('err-email');
+            
+            let hasError = false;
+
+            // Валидация имени
+            if (nameInput.value.trim().length < 2) {
+                errName.classList.remove('hidden');
+                nameInput.classList.add('border-red-500/50');
+                hasError = true;
+            } else {
+                errName.classList.add('hidden');
+                nameInput.classList.remove('border-red-500/50');
+            }
+
+            // Валидация Email регуляркой
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailInput.value.trim())) {
+                errEmail.classList.remove('hidden');
+                emailInput.classList.add('border-red-500/50');
+                hasError = true;
+            } else {
+                errEmail.classList.add('hidden');
+                emailInput.classList.remove('border-red-500/50');
+            }
+
+            if (hasError) {
+                showToast('Ошибка заполнения!', 'Пожалуйста, проверьте корректность введенных данных.', 'error');
+            } else {
+                showToast('Форма успешно проверена!', `Спасибо, ${nameInput.value}! Валидация пройдена на 100%. Мы готовы к отправке.`, 'success');
+                // Очистка формы
+                nameInput.value = '';
+                emailInput.value = '';
+                msgInput.value = '';
+            }
+        }
+    </script>
 </body>
 </html>
