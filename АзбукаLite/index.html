@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>АзбукаLite - Автоматика</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #1a1a1a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .letter-box { width: 50px; height: 60px; border: 2px solid #4a4a4a; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; font-weight: bold; background: #2d2d2d; border-radius: 4px; }
+        .revealed { background: #3b82f6; border-color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <div class="max-w-2xl w-full p-6 text-center">
+        <h1 class="text-xl font-bold mb-4 text-gray-400">АзбукаLite: Тестовый режим</h1>
+        
+        <div id="word-display" class="flex gap-2 justify-center mb-6"></div>
+        <div id="clue-display" class="text-blue-400 mb-4"></div>
+        
+        <div id="chat-output" class="bg-gray-900 p-4 rounded h-32 overflow-y-auto text-sm text-gray-300 mb-4">
+            <p class="text-gray-500">Ожидание сообщений из чата...</p>
+        </div>
+
+        <button onclick="nextWord()" class="bg-green-700 px-4 py-2 rounded">Следующее слово</button>
+    </div>
+
+    <script>
+        const words = [{word: "ДОЖДЬ", hint: "Капли воды с неба"}];
+        let currentIndex = 0;
+        let isRevealed = false;
+
+        const socket = new WebSocket('ws://localhost:8765');
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            const chatBox = document.getElementById('chat-output');
+            chatBox.innerHTML += `<p><b>${data.author}</b>: ${data.message}</p>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Логика проверки: если сообщение = загаданное слово
+            if (data.message === words[currentIndex].word) {
+                isRevealed = true;
+                render();
+            }
+        };
+
+        function render() {
+            const current = words[currentIndex];
+            const wordDisplay = document.getElementById('word-display');
+            wordDisplay.innerHTML = '';
+            current.word.split('').forEach((char, index) => {
+                const box = document.createElement('div');
+                box.className = 'letter-box' + (isRevealed || index === 0 ? ' revealed' : '');
+                box.innerText = (isRevealed || index === 0) ? char : '';
+                wordDisplay.appendChild(box);
+            });
+            document.getElementById('clue-display').innerText = current.hint;
+        }
+
+        function nextWord() {
+            currentIndex = (currentIndex + 1) % words.length;
+            isRevealed = false;
+            render();
+        }
+
+        render();
+    </script>
+</body>
+</html>
