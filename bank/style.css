@@ -1,0 +1,48 @@
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #050a05; /* Темный фон */
+    font-family: sans-serif;
+}
+
+/* Эффект свечения */
+.glow-container {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, #39ff14, transparent);
+    filter: blur(100px);
+    animation: pulse 4s infinite;
+}
+
+.logo {
+    color: #ccff00;
+    text-shadow: 0 0 20px #39ff14;
+    margin-bottom: 50px;
+}
+
+.action-btn {
+    padding: 20px 60px;
+    font-size: 24px;
+    background: transparent;
+    color: #39ff14;
+    border: 2px solid #39ff14;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: 0.3s;
+    backdrop-filter: blur(10px);
+}
+
+.action-btn:hover {
+    background: #39ff14;
+    color: #000;
+    box-shadow: 0 0 30px #39ff14;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.5); opacity: 0.8; }
+}
