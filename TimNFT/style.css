@@ -1,0 +1,10 @@
+body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; }
+.container { padding: 20px; }
+.inventory { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+.item { 
+    border: 1px solid #444; padding: 15px; margin: 5px; 
+    border-radius: 8px; width: 100px; background: #333; 
+}
+.common { border-color: gray; }
+.rare { border-color: blue; }
+.legendary { border-color: gold; color: gold; }
