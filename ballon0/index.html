@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RTX Ultra Balloon 3D</title>
+    <title>RTX Ultra Balloon 3D - NextGen</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;800;900&display=swap');
 
@@ -18,9 +18,9 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #ffffff;
+            background-color: #0a0a0c; /* Темный фон подчеркивает RTX-блики */
             font-family: 'Montserrat', sans-serif;
-            cursor: none; /* Скрываем дефолтный курсор для погружения */
+            cursor: none;
         }
 
         #canvas-container {
@@ -32,7 +32,6 @@
             z-index: 1;
         }
 
-        /* Стильный UI поверх */
         .ui-layer {
             position: absolute;
             top: 0;
@@ -40,7 +39,7 @@
             width: 100%;
             height: 100%;
             z-index: 10;
-            pointer-events: none; /* Пропускаем клики к 3D сцене */
+            pointer-events: none;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -57,28 +56,29 @@
             font-weight: 900;
             font-size: 1.5rem;
             letter-spacing: 5px;
-            color: #000;
+            color: #fff;
             text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
 
         .badge {
-            background: #000;
+            background: #ff1e56;
             color: #fff;
             padding: 6px 14px;
             font-size: 0.75rem;
             font-weight: 800;
             border-radius: 50px;
             letter-spacing: 2px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 0 20px rgba(255, 30, 86, 0.4);
         }
 
         .instruction {
             position: absolute;
-            top: 50%;
+            top: 15%;
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            opacity: 0.7;
+            opacity: 0.8;
             transition: opacity 0.5s;
         }
 
@@ -89,8 +89,8 @@
         .instruction h1 {
             font-size: 1rem;
             font-weight: 300;
-            letter-spacing: 8px;
-            color: #333;
+            letter-spacing: 6px;
+            color: #eee;
             text-transform: uppercase;
             margin-bottom: 10px;
             animation: pulse 2s infinite ease-in-out;
@@ -110,15 +110,14 @@
         .hint {
             font-size: 0.75rem;
             letter-spacing: 2px;
-            color: #888;
+            color: #666;
             font-weight: 800;
             text-transform: uppercase;
         }
 
-        /* Кнопка возрождения */
         #respawn-btn {
-            background: #000;
-            color: #fff;
+            background: #fff;
+            color: #000;
             border: none;
             padding: 15px 35px;
             font-family: 'Montserrat', sans-serif;
@@ -128,8 +127,8 @@
             text-transform: uppercase;
             border-radius: 50px;
             cursor: pointer;
-            pointer-events: auto; /* Разрешаем клик */
-            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            pointer-events: auto;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5);
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform: scale(0);
             opacity: 0;
@@ -142,27 +141,29 @@
 
         #respawn-btn:hover {
             transform: scale(1.05) translateY(-3px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-            background: #ff2e63;
+            box-shadow: 0 20px 40px rgba(255, 30, 86, 0.4);
+            background: #ff1e56;
+            color: #fff;
         }
 
-        /* Кастомный прицел-курсор */
         #custom-cursor {
-            width: 10px;
-            height: 10px;
-            background: #000;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #fff;
             border-radius: 50%;
             position: fixed;
             pointer-events: none;
             z-index: 100;
             transform: translate(-50%, -50%);
             transition: width 0.2s, height 0.2s, background-color 0.2s;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
 
         body:active #custom-cursor {
-            width: 6px;
-            height: 6px;
-            background: #ff2e63;
+            width: 8px;
+            height: 8px;
+            background: #ff1e56;
+            border-color: #ff1e56;
         }
     </style>
 </head>
@@ -172,40 +173,37 @@
 
     <div class="ui-layer">
         <header>
-            <div class="logo">RTX.Sphere</div>
-            <div class="badge">ULTRA 3D</div>
+            <div class="logo">RTX.BOMB</div>
+            <div class="badge">RTX 3050+ MODE</div>
         </header>
 
         <div class="instruction" id="instruction">
-            <h1>Двигай мышью • Кликни для взрыва</h1>
+            <h1>Плавное управление • Клик для детонации</h1>
         </div>
 
         <footer>
-            <div class="hint">Made with Pure Art & Code</div>
-            <button id="respawn-btn">Создать еще один</button>
+            <div class="hint">Powered by WebGL & Ultra PBR</div>
+            <button id="respawn-btn">Создать новый шедевр</button>
         </footer>
     </div>
 
     <div id="canvas-container"></div>
 
-    <!-- Подключаем Three.js через надежный CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // --- НАСТРОЙКИ СЦЕНЫ ---
         let container = document.getElementById('canvas-container');
         let scene, camera, renderer;
         let balloon, balloonMaterial, string, stringGeometry;
         let particles = [];
         let isPopped = false;
 
-        // Физика движения
+        // Физика сверхплавного следования (Заточка под тяжелый гелий)
         let mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
         let balloonPos = { x: 0, y: 0, z: 0 };
         let targetPos = { x: 0, y: 0, z: 0 };
         let velocity = { x: 0, y: 0 };
         let rotationTarget = { x: 0, z: 0 };
 
-        // Инициализация аудио-контекста для синтеза звука лопания
         let audioCtx;
         function initAudio() {
             if (!audioCtx) {
@@ -213,112 +211,105 @@
             }
         }
 
-        // --- ИНИЦИАЛИЗАЦИЯ 3D ---
         function init() {
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0xffffff, 0.015);
+            // Глубокий космический туман для создания объема сцены
+            scene.fog = new THREE.FogExp2(0x0a0a0c, 0.02);
 
-            // Камера
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.set(0, 0, 12);
+            camera.position.set(0, 0, 10);
 
-            // Рендерер с поддержкой теней и RTX эффектов (ToneMapping)
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            // Рендерер на максималках для мощных видеокарт
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Четкая картинка
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            
+            // Кинематографический маппинг цветов (как в AAA-играх на UE5)
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.1;
+            renderer.toneMappingExposure = 1.2;
             container.appendChild(renderer.domElement);
 
-            // --- КИНЕМАТОГРАФИЧЕСКИЙ СВЕТ (RTX LOOK) ---
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            // --- СТУДИЙНЫЙ СВЕТ КЛАССА КИНО (RTX LOOK) ---
+            const ambientLight = new THREE.AmbientLight(0x111115, 0.8);
             scene.add(ambientLight);
 
-            // Главный прожектор для мягких теней
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-            dirLight.position.set(5, 10, 7);
+            // Направленный мягкий свет сверху для теней
+            const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+            dirLight.position.set(5, 12, 8);
             dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.width = 2048; // Ультра разрешение теней
             dirLight.shadow.mapSize.height = 2048;
-            dirLight.shadow.camera.near = 0.5;
-            dirLight.shadow.camera.far = 25;
-            dirLight.shadow.camera.left = -6;
-            dirLight.shadow.camera.right = 6;
-            dirLight.shadow.camera.top = 6;
-            dirLight.shadow.camera.bottom = -6;
-            dirLight.shadow.bias = -0.0005;
+            dirLight.shadow.bias = -0.0001;
             scene.add(dirLight);
 
-            // Цветные подсветки для красивых "RTX" градиентных бликов на латексе
-            const rimLight1 = new THREE.PointLight(0x00a8ff, 3, 15); // Голубой блик слева
-            rimLight1.position.set(-6, -2, 3);
+            // Синий неоновый блик слева (Подчеркивает геометрию латекса)
+            const rimLight1 = new THREE.PointLight(0x00d2ff, 6, 18);
+            rimLight1.position.set(-8, -2, 4);
             scene.add(rimLight1);
 
-            const rimLight2 = new THREE.PointLight(0xff007f, 4, 15); // Розовый блик справа
-            rimLight2.position.set(6, 4, 3);
+            // Насыщенный розовый/пурпурный блик справа
+            const rimLight2 = new THREE.PointLight(0xff007f, 8, 18);
+            rimLight2.position.set(8, 4, 4);
             scene.add(rimLight2);
 
-            // Свет сверху вниз для объема
-            const topLight = new THREE.DirectionalLight(0xffffff, 0.5);
-            topLight.position.set(0, 10, 0);
-            scene.add(topLight);
+            // Подсветка снизу, чтобы шарик не проваливался в темноту
+            const floorLight = new THREE.DirectionalLight(0x334455, 0.6);
+            floorLight.position.set(0, -10, 0);
+            scene.add(floorLight);
 
-            // Невидимая плоскость на заднем плане для улавливания мягкой тени
+            // Задний план, улавливающий мягкие тени
             const shadowPlane = new THREE.Mesh(
-                new THREE.PlaneGeometry(50, 50),
-                new THREE.ShadowMaterial({ opacity: 0.06 })
+                new THREE.PlaneGeometry(60, 60),
+                new THREE.ShadowMaterial({ opacity: 0.3 })
             );
-            shadowPlane.position.z = -4;
+            shadowPlane.position.z = -5;
             shadowPlane.receiveShadow = true;
             scene.add(shadowPlane);
 
             createBalloon();
-
-            // Анимация
             animate();
         }
 
-        // --- СОЗДАНИЕ УЛЬТРА РЕАЛИСТИЧНОГО ШАРА ---
         function createBalloon() {
             isPopped = false;
             document.getElementById('respawn-btn').classList.remove('show');
             document.getElementById('instruction').classList.remove('hide');
 
-            // Группа для шара и нитки
             balloon = new THREE.Group();
-            balloon.position.set(0, -1, 0);
+            balloon.position.set(0, -2, 0);
             scene.add(balloon);
 
-            // Материал "Жидкий Глянцевый Латекс" (Физический рендеринг)
+            // УЛЬТРА-РЕАЛИСТИЧНЫЙ МАТЕРИАЛ (Физический рендеринг PBR)
             balloonMaterial = new THREE.MeshPhysicalMaterial({
-                color: 0xff1e56,               // Глубокий малиново-красный
-                roughness: 0.05,               // Идеально гладкий
-                metalness: 0.1,                // Слегка металлизированный
-                clearcoat: 1.0,                // Дополнительный слой лака сверху
-                clearcoatRoughness: 0.02,
-                transmission: 0.3,             // Полупрозрачность латекса на просвет
-                thickness: 0.8,                // Толщина материала для преломления
-                ior: 1.45,                     // Индекс преломления света
-                specularIntensity: 2.0,
+                color: 0xe60039,                // Насыщенный глубокий красный
+                roughness: 0.02,               // Зеркально гладкий латекс
+                metalness: 0.05,               // Небольшой отблеск основы
+                clearcoat: 1.0,                // Верхний лакированный слой
+                clearcoatRoughness: 0.01,      // Идеальное отражение на лаке
+                transmission: 0.25,            // Пропускание света сквозь резину
+                thickness: 0.5,                // Преломление внутри стенок шара
+                ior: 1.40,                     // Индекс преломления
+                specularIntensity: 3.0,        // Экстремальная яркость бликов
                 specularColor: new THREE.Color(0xffffff),
             });
 
-            // Форма шара (сплющенная сфера для реалистичности)
-            const bodyGeo = new THREE.SphereGeometry(1.4, 64, 64);
-            // Немного вытягиваем по вертикали, сужая к низу
+            // Идеальная анатомическая форма воздушного шара
+            const bodyGeo = new THREE.SphereGeometry(1.5, 128, 128); // Высокая детализация сетки
             const posAttr = bodyGeo.attributes.position;
             for (let i = 0; i < posAttr.count; i++) {
+                let x = posAttr.getX(i);
                 let y = posAttr.getY(i);
+                let z = posAttr.getZ(i);
+
+                // Вытягиваем сферу по вертикали и плавно сужаем нижнюю часть к узелку
                 if (y < 0) {
-                    // Сужение к низу
-                    let factor = 1 + (y * 0.18);
-                    posAttr.setX(i, posAttr.getX(i) * factor);
-                    posAttr.setZ(i, posAttr.getZ(i) * factor);
+                    let k = 1.0 + (y * 0.22); 
+                    posAttr.setX(i, x * k);
+                    posAttr.setZ(i, z * k);
                 }
-                // Вытягивание по Y
-                posAttr.setY(i, y * 1.15);
+                posAttr.setY(i, y * 1.25);
             }
             bodyGeo.computeVertexNormals();
 
@@ -328,29 +319,28 @@
             balloonBody.name = "clickable";
             balloon.add(balloonBody);
 
-            // Пипочка (узелок снизу)
-            const knotGeo = new THREE.ConeGeometry(0.18, 0.3, 16);
-            knotGeo.translate(0, -1.6, 0);
+            // Хвостик-узелок снизу
+            const knotGeo = new THREE.ConeGeometry(0.18, 0.35, 32);
+            knotGeo.translate(0, -1.85, 0);
             const balloonKnot = new THREE.Mesh(knotGeo, balloonMaterial);
             balloonKnot.castShadow = true;
             balloon.add(balloonKnot);
 
-            // НИТОЧКА (Динамическая линия)
+            // Физическая шелковая нить
             const stringPoints = [];
-            for (let i = 0; i < 20; i++) {
-                stringPoints.push(new THREE.Vector3(0, -1.6 - (i * 0.22), 0));
+            for (let i = 0; i < 25; i++) {
+                stringPoints.push(new THREE.Vector3(0, -1.85 - (i * 0.18), 0));
             }
             stringGeometry = new THREE.BufferGeometry().setFromPoints(stringPoints);
-            const stringMat = new THREE.LineBasicMaterial({ color: 0x888888, linewidth: 2 });
+            const stringMat = new THREE.LineBasicMaterial({ color: 0x555555, linewidth: 2 });
             string = new THREE.Line(stringGeometry, stringMat);
             balloon.add(string);
 
-            // Сброс физики движения
+            // Сброс физических векторов
             balloonPos = { x: 0, y: 0, z: 0 };
             velocity = { x: 0, y: 0 };
         }
 
-        // --- РЕАЛИСТИЧНЫЙ ЗВУК ВЗРЫВА (Синтез частот) ---
         function playPopSound() {
             initAudio();
             if(!audioCtx) return;
@@ -358,16 +348,14 @@
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             
-            // Низкочастотный хлопок (саб-бас воздуха)
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.15);
+            osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.12);
             
             gain.gain.setValueAtTime(1.5, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
 
-            // Высокочастотный щелчок рвущейся резины
-            const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.05, audioCtx.sampleRate);
+            const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.04, audioCtx.sampleRate);
             const output = noiseBuffer.getChannelData(0);
             for (let i = 0; i < noiseBuffer.length; i++) {
                 output[i] = Math.random() * 2 - 1;
@@ -377,28 +365,24 @@
 
             const noiseFilter = audioCtx.createBiquadFilter();
             noiseFilter.type = 'bandpass';
-            noiseFilter.frequency.value = 1000;
+            noiseFilter.frequency.value = 900;
 
             const noiseGain = audioCtx.createGain();
-            noiseGain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+            noiseGain.gain.setValueAtTime(0.8, audioCtx.currentTime);
             noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
 
-            // Соединяем узлы
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-
             noise.connect(noiseFilter);
             noiseFilter.connect(noiseGain);
             noiseGain.connect(audioCtx.destination);
 
-            // Старт
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.2);
+            osc.stop(audioCtx.currentTime + 0.15);
             noise.start();
-            noise.stop(audioCtx.currentTime + 0.05);
+            noise.stop(audioCtx.currentTime + 0.04);
         }
 
-        // --- ЭФФЕКТ ВЗРЫВА (Много осколков) ---
         function triggerExplosion(position) {
             isPopped = true;
             playPopSound();
@@ -406,34 +390,31 @@
             document.getElementById('respawn-btn').classList.add('show');
             document.getElementById('instruction').classList.add('hide');
 
-            // Удаляем визуальный шар
             scene.remove(balloon);
 
-            // Создаем 150+ реалистичных осколков резины
-            const particleCount = 180;
-            const particleGeo = new THREE.BoxGeometry(0.1, 0.1, 0.02);
+            // Премиум-эффект разлета осколков резины (200 частиц)
+            const particleCount = 200;
+            const particleGeo = new THREE.BoxGeometry(0.12, 0.12, 0.02);
 
             for (let i = 0; i < particleCount; i++) {
                 const mesh = new THREE.Mesh(particleGeo, balloonMaterial);
                 
-                // Рандомные стартовые позиции в пределах формы шара
                 const theta = Math.random() * Math.PI * 2;
                 const phi = Math.acos((Math.random() * 2) - 1);
                 
                 mesh.position.copy(position);
-                mesh.position.x += Math.sin(phi) * Math.cos(theta) * 0.5;
-                mesh.position.y += Math.sin(phi) * Math.sin(theta) * 0.5;
-                mesh.position.z += Math.cos(phi) * 0.5;
+                mesh.position.x += Math.sin(phi) * Math.cos(theta) * 0.6;
+                mesh.position.y += Math.sin(phi) * Math.sin(theta) * 0.6;
+                mesh.position.z += Math.cos(phi) * 0.6;
 
-                // Направление взрыва наружу
-                const force = 6 + Math.random() * 12;
+                const force = 8 + Math.random() * 14;
                 const vel = new THREE.Vector3(
                     Math.sin(phi) * Math.cos(theta) * force,
-                    Math.sin(phi) * Math.sin(theta) * force + 2, // Чуть подбрасывает вверх
+                    Math.sin(phi) * Math.sin(theta) * force + 3, 
                     Math.cos(phi) * force
                 );
 
-                mesh.scale.set(Math.random() * 2 + 0.5, Math.random() * 2 + 0.5, 1);
+                mesh.scale.set(Math.random() * 2.5 + 0.5, Math.random() * 2.5 + 0.5, 1);
                 mesh.castShadow = true;
                 scene.add(mesh);
 
@@ -441,34 +422,29 @@
                     mesh: mesh,
                     velocity: vel,
                     rotationSpeed: new THREE.Vector3(
-                        (Math.random() - 0.5) * 20,
-                        (Math.random() - 0.5) * 20,
-                        (Math.random() - 0.5) * 20
+                        (Math.random() - 0.5) * 25,
+                        (Math.random() - 0.5) * 25,
+                        (Math.random() - 0.5) * 25
                     ),
                     life: 1.0,
-                    decay: 0.015 + Math.random() * 0.02
+                    decay: 0.012 + Math.random() * 0.018
                 });
             }
         }
 
-        // --- СВЯЗЬ МЫШКИ С 3D КООРДИНАТАМИ ---
         window.addEventListener('mousemove', (e) => {
-            // Движение стильного курсора
             const customCursor = document.getElementById('custom-cursor');
             customCursor.style.left = e.clientX + 'px';
             customCursor.style.top = e.clientY + 'px';
 
-            // Нормализация координат мыши [-1, 1]
             mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
         });
 
-        // Клик для взрыва
         window.addEventListener('pointerdown', (e) => {
             initAudio();
             if (isPopped) return;
 
-            // Настройка луча клика (Raycaster)
             const raycaster = new THREE.Raycaster();
             const clickCoords = new THREE.Vector2(
                 (e.clientX / window.innerWidth) * 2 - 1,
@@ -478,7 +454,6 @@
             raycaster.setFromCamera(clickCoords, camera);
             const intersects = raycaster.intersectObjects(scene.children, true);
 
-            // Ищем пересечение конкретно с телом шара
             for (let i = 0; i < intersects.length; i++) {
                 if (intersects[i].object.name === "clickable") {
                     triggerExplosion(balloon.position);
@@ -487,80 +462,73 @@
             }
         });
 
-        // Респавн по кнопке
         document.getElementById('respawn-btn').addEventListener('click', () => {
             createBalloon();
         });
 
-        // Адаптивность размера экрана
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // --- ГЛАВНЫЙ ИГРОВОЙ ЦИКЛ (ФИЗИКА И АНИМАЦИЯ) ---
         let clock = new THREE.Clock();
 
+        // --- ИГРОВОЙ ДВИЖОК: СВЕРХПЛАВНАЯ КИНЕМАТИКА ---
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
 
             if (!isPopped && balloon) {
-                // Переводим 2D координаты мыши в 3D плоскость перед камерой
-                targetPos.x = mouse.targetX * 5.5;
-                targetPos.y = mouse.targetY * 3.5;
+                // Пересчет координат под экран
+                targetPos.x = mouse.targetX * 4.8;
+                targetPos.y = mouse.targetY * 3.0;
 
-                // Плавное следование с инерцией (физика веса шарика с гелием)
-                const lagFactor = 0.04; 
+                // Сверхплавное следование (заниженный коэффициент лага + высокая инерция)
+                const lagFactor = 0.025;  // Меньше значение -> плавнее ход
                 velocity.x += (targetPos.x - balloon.position.x) * lagFactor;
                 velocity.y += (targetPos.y - balloon.position.y) * lagFactor;
 
-                // Сопротивление воздуха
-                velocity.x *= 0.82;
-                velocity.y *= 0.82;
+                // Физическое трение воздуха для эффекта вязкости
+                velocity.x *= 0.88;
+                velocity.y *= 0.88;
 
                 balloon.position.x += velocity.x;
                 balloon.position.y += velocity.y;
 
-                // Легкое парение на волнах воздуха (Sine wave)
+                // Реалистичный живой дрейф (микро-колебания воздуха)
                 const elapsedTime = clock.getElapsedTime();
-                balloon.position.y += Math.sin(elapsedTime * 2) * 0.005;
-                balloon.position.x += Math.cos(elapsedTime * 1.5) * 0.003;
+                balloon.position.y += Math.sin(elapsedTime * 1.8) * 0.003;
+                balloon.position.x += Math.cos(elapsedTime * 1.2) * 0.002;
 
-                // Наклон шара при резком движении
-                rotationTarget.z = -velocity.x * 0.6;
-                rotationTarget.x = velocity.y * 0.3;
+                // Наклон модели при ускорениях
+                rotationTarget.z = -velocity.x * 0.5;
+                rotationTarget.x = velocity.y * 0.25;
                 
-                balloon.rotation.z += (rotationTarget.z - balloon.rotation.z) * 0.1;
-                balloon.rotation.x += (rotationTarget.x - balloon.rotation.x) * 0.1;
-                // Легкое вращение вокруг своей оси
-                balloon.rotation.y = elapsedTime * 0.2;
+                balloon.rotation.z += (rotationTarget.z - balloon.rotation.z) * 0.08;
+                balloon.rotation.x += (rotationTarget.x - balloon.rotation.x) * 0.08;
+                balloon.rotation.y = elapsedTime * 0.15; // Медленный оборот вокруг оси
 
-                // РЕАЛИСТИЧНОЕ ИЗГИБАНИЕ НИТОЧКИ
+                // Реалистичная физика нитки
                 if (stringGeometry) {
                     const positions = stringGeometry.attributes.position;
-                    // Рассчитываем изгиб по физической кривой от скорости ветра/движения
                     for (let i = 1; i < positions.count; i++) {
                         const factor = i / positions.count;
-                        // Сила инерции на хвост нити
-                        const targetStringX = Math.sin(elapsedTime * 3 + i) * 0.08 * factor - (velocity.x * factor * 5);
-                        
-                        // Плавный переход для каждого узла нитки
+                        // Хвост нити сильно отстает от движения шара, создавая красивый изгиб
+                        const targetStringX = Math.sin(elapsedTime * 2.5 + i) * 0.05 * factor - (velocity.x * factor * 6);
                         let currentX = positions.getX(i);
-                        positions.setX(i, currentX + (targetStringX - currentX) * 0.15);
+                        positions.setX(i, currentX + (targetStringX - currentX) * 0.12);
                     }
                     stringGeometry.attributes.position.needsUpdate = true;
                 }
             }
 
-            // Физика осколков при взрыве
+            // Рендер и анимация уничтожения частиц
             for (let i = particles.length - 1; i >= 0; i--) {
                 const p = particles[i];
-                // Гравитация падения резины вниз
-                p.velocity.y -= 9.8 * delta;
-                p.velocity.x *= 0.98; // Сопротивление воздуха
-                p.velocity.z *= 0.98;
+                p.velocity.y -= 9.8 * delta; // Гравитация
+                p.velocity.x *= 0.97;
+                p.velocity.z *= 0.97;
 
                 p.mesh.position.addScaledVector(p.velocity, delta);
                 
@@ -568,12 +536,9 @@
                 p.mesh.rotation.y += p.rotationSpeed.y * delta;
                 p.mesh.rotation.z += p.rotationSpeed.z * delta;
 
-                // Медленное растворение
                 p.life -= p.decay;
                 p.mesh.material.opacity = p.life;
-                
-                // Сжатие осколков при падении
-                p.mesh.scale.multiplyScalar(0.98);
+                p.mesh.scale.multiplyScalar(0.97);
 
                 if (p.life <= 0) {
                     scene.remove(p.mesh);
@@ -584,7 +549,6 @@
             renderer.render(scene, camera);
         }
 
-        // Запуск
         init();
     </script>
 </body>
