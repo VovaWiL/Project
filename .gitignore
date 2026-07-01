@@ -1,0 +1,4 @@
+AiWorld/node_modules/
+AiWorld/.env
+.DS_Store
+noVNC
