@@ -1,1 +1,4 @@
 # Submodules configuration
+[submodule "noVNC"]
+	path = noVNC
+	url = https://github.com/novnc/noVNC.git
