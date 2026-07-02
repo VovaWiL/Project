@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIMATEcat 🐱 — Всё про котиков</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    color: #3a2c1a;
+    line-height: 1.6;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ===== SIDEBAR ===== */
+  aside#sidebar {
+    width: 300px;
+    min-width: 300px;
+    background: linear-gradient(180deg, #4a2c1a, #6b3d24);
+    color: #ffecd2;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    overflow-y: auto;
+    box-shadow: 3px 0 15px rgba(0,0,0,0.25);
+    z-index: 100;
+    transition: transform 0.3s;
+  }
+  aside#sidebar::-webkit-scrollbar { width: 8px; }
+  aside#sidebar::-webkit-scrollbar-track { background: #4a2c1a; }
+  aside#sidebar::-webkit-scrollbar-thumb { background: #ff9a76; border-radius: 4px; }
+
+  .sidebar-header {
+    background: linear-gradient(135deg, #ff6b6b, #ff9a76);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 3px solid #ffecd2;
+  }
+  .sidebar-header h1 {
+    font-size: 1.7em;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+  }
+  .sidebar-header p { font-size: 0.85em; opacity: 0.95; margin-top: 5px; }
+
+  .menu { list-style: none; padding: 10px 0; }
+  .menu > li { margin: 2px 0; }
+  .menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.25s;
+    border-left: 4px solid transparent;
+    user-select: none;
+  }
+  .menu-header:hover {
+    background: rgba(255,154,118,0.25);
+    border-left-color: #ff9a76;
+  }
+  .menu-header.active {
+    background: rgba(255,154,118,0.35);
+    border-left-color: #ff6b6b;
+  }
+  .menu-header .arrow {
+    transition: transform 0.3s;
+    font-size: 0.8em;
+  }
+  .menu-header.active .arrow { transform: rotate(90deg); }
+
+  .submenu {
+    list-style: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+    background: rgba(0,0,0,0.2);
+  }
+  .submenu.open { max-height: 3000px; }
+  .submenu li a {
+    display: block;
+    color: #ffe0b3;
+    text-decoration: none;
+    padding: 8px 20px 8px 40px;
+    font-size: 0.9em;
+    transition: 0.2s;
+    border-left: 3px solid transparent;
+  }
+  .submenu li a:hover {
+    background: rgba(255,107,107,0.3);
+    color: white;
+    border-left-color: #ff6b6b;
+    padding-left: 45px;
+  }
+  .badge {
+    background: #ff6b6b;
+    color: white;
+    font-size: 0.7em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 5px;
+  }
+
+  /* ===== MAIN ===== */
+  main { flex: 1; min-width: 0; }
+  .hero {
+    background: linear-gradient(135deg, #ff9a76, #ff6b6b);
+    color: white;
+    padding: 60px 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero h1 {
+    font-size: 4em;
+    text-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+    letter-spacing: 3px;
+    margin-bottom: 15px;
+  }
+  .hero p { font-size: 1.3em; max-width: 700px; margin: 0 auto; }
+  .bounce { display: inline-block; animation: bounce 2s infinite; }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+  }
+
+  section {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 30px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 20px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+    scroll-margin-top: 20px;
+  }
+  h2 {
+    color: #ff6b6b;
+    font-size: 2.3em;
+    margin-bottom: 20px;
+    text-align: center;
+    border-bottom: 3px dashed #ff9a76;
+    padding-bottom: 10px;
+  }
+  h3 { color: #4a2c1a; margin: 20px 0 12px; font-size: 1.4em; }
+  h4 { color: #a04a1e; margin: 10px 0; font-size: 1.15em; }
+  p { margin-bottom: 12px; }
+  ul, ol { margin-left: 25px; margin-bottom: 12px; }
+  li { margin-bottom: 6px; }
+
+  .section-hero {
+    width: 100%;
+    max-width: 700px;
+    display: block;
+    margin: 0 auto 25px;
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    max-height: 400px;
+    object-fit: cover;
+  }
+
+  /* ===== FILTER BAR ===== */
+  .filter-bar { text-align: center; margin-bottom: 25px; }
+  .filter-bar input {
+    padding: 12px 22px;
+    width: 80%;
+    max-width: 500px;
+    border: 2px solid #ff9a76;
+    border-radius: 25px;
+    font-size: 1em;
+    outline: none;
+  }
+  .filter-bar input:focus {
+    border-color: #ff6b6b;
+    box-shadow: 0 0 12px rgba(255,107,107,0.3);
+  }
+  .counter {
+    text-align: center;
+    color: #a04a1e;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+
+  /* ===== CATALOG CARDS ===== */
+  .catalog {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 22px;
+    margin-top: 20px;
+  }
+  .cat-card {
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+  }
+  .cat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(255,107,107,0.3);
+    border-color: #ff9a76;
+  }
+  .cat-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    display: block;
+    background: #ffe0b3;
+    cursor: pointer;
+  }
+  .card-imgs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    background: #ffe0b3;
+  }
+  .card-imgs img {
+    height: 140px;
+    width: 100%;
+    object-fit: cover;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .card-imgs img:hover { transform: scale(1.05); }
+  .card-imgs img:first-child { grid-column: span 3; height: 200px; }
+  .meme-card { background: white; border-radius:18px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.1); border:2px solid transparent; transition:0.3s; display:flex; flex-direction:column; }
+  .meme-card:hover { transform:translateY(-8px); box-shadow:0 12px 30px rgba(255,107,107,0.3); border-color:#ff9a76; }
+  .meme-card img { width:100%; height:260px; object-fit:contain; background:#fff5eb; cursor:pointer; padding:8px; }
+  .meme-card .body { padding:18px; }
+  .meme-card h3 { color:#ff6b6b; margin:0 0 10px; font-size:1.25em; }
+  .meme-card .meta { background:#fff5eb; padding:10px 12px; border-radius:8px; margin:10px 0; font-size:0.88em; }
+  .meme-card .meta div { margin-bottom:4px; }
+  .meme-card .meta strong { color:#a04a1e; }
+  .meme-card .story { font-size:0.93em; color:#5a4a3a; }
+  .cat-card .card-body {
+    padding: 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .cat-card h3 {
+    color: #ff6b6b;
+    text-align: center;
+    margin: 0 0 12px;
+    font-size: 1.25em;
+  }
+  .cat-card .info { font-size: 0.92em; color: #5a4a3a; }
+  .cat-card .info p { margin-bottom: 6px; }
+  .cat-card .info strong { color: #4a2c1a; }
+  .tag {
+    display: inline-block;
+    background: #ffdcc2;
+    color: #a04a1e;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.78em;
+    margin: 3px 3px 0 0;
+  }
+
+  /* ===== GALLERY ===== */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .gallery img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    transition: transform 0.3s;
+    cursor: pointer;
+  }
+  .gallery img:hover { transform: scale(1.06); }
+
+  /* ===== FACTS ===== */
+  .facts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+  }
+  .fact-box {
+    background: linear-gradient(135deg, #ffe0b3, #ffcc99);
+    padding: 22px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  }
+  .fact-box .fact-num {
+    font-size: 2em;
+    color: #ff6b6b;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+  }
+  .fact-box p { margin: 0; font-size: 0.93em; }
+
+  /* ===== BOX WITH IMAGE ===== */
+  .grid-boxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+  .box {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+    border-left: 5px solid #ff9a76;
+    display: flex;
+    flex-direction: column;
+  }
+  .box img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    cursor: pointer;
+    background: #ffe0b3;
+  }
+  .box .box-body { padding: 18px; }
+  .box h4 { color: #ff6b6b; margin-bottom: 8px; font-size: 1.1em; }
+  .box p { font-size: 0.93em; margin: 0; }
+
+  /* ===== LEGEND ===== */
+  .legend-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+  }
+  .legend-card img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    background: #ffe0b3;
+    cursor: pointer;
+  }
+  .legend-card .body { padding: 18px; }
+  .legend-card h4 { color: #ff6b6b; font-size: 1.2em; margin-bottom: 8px; }
+
+  /* ===== NAMES ===== */
+  .names-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-top: 20px;
+  }
+  .names-column {
+    background: white;
+    border-radius: 15px;
+    padding: 0 0 20px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+  .names-column.girls { border-top: 6px solid #ff9ec7; }
+  .names-column.boys { border-top: 6px solid #7db3ff; }
+  .names-column img.hdr {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+    background: #ffe0b3;
+  }
+  .names-column h3 {
+    text-align: center;
+    color: #4a2c1a;
+    margin: 15px 0;
+  }
+  .names-column .inner { padding: 0 20px; }
+  .names-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px;
+    list-style: none;
+    margin: 0 0 15px;
+  }
+  .names-list li {
+    background: #fff5eb;
+    padding: 6px 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.9em;
+    transition: 0.2s;
+    margin: 0;
+  }
+  .names-list li:hover {
+    background: #ff9a76;
+    color: white;
+    transform: scale(1.05);
+    cursor: pointer;
+  }
+
+  /* ===== COLORS ===== */
+  .colors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+  }
+  .color-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  }
+  .color-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    cursor: pointer;
+    background: #ffe0b3;
+  }
+  .color-card .body { padding: 15px; }
+  .color-card h4 { color: #ff6b6b; margin-bottom: 6px; }
+  .color-card p { font-size: 0.9em; margin: 0; }
+
+  /* ===== TABLE ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #ffe0b3; }
+  th { background: #ff9a76; color: white; }
+  tr:hover { background: #fff5eb; }
+
+  /* ===== FOOTER ===== */
+  footer {
+    background: #4a2c1a;
+    color: #ffecd2;
+    text-align: center;
+    padding: 30px;
+    margin-top: 40px;
+  }
+  footer .paws { font-size: 1.5em; margin-top: 15px; letter-spacing: 15px; }
+
+  /* ===== MOBILE ===== */
+  .mobile-toggle {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 200;
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 1.3em;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  }
+  @media (max-width: 900px) {
+    body { flex-direction: column; }
+    aside#sidebar {
+      position: fixed;
+      transform: translateX(-100%);
+      width: 280px;
+      min-width: 280px;
+    }
+    aside#sidebar.open { transform: translateX(0); }
+    .mobile-toggle { display: block; }
+    .hero h1 { font-size: 2.5em; }
+    .hero { padding: 80px 20px 40px; }
+    section { margin: 20px 10px; padding: 20px; }
+    .names-container { grid-template-columns: 1fr; }
+  }
+
+  /* ===== LIGHTBOX ===== */
+  .lightbox {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 500;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 90%; max-height: 90%; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+<aside id="sidebar">
+  <div class="sidebar-header">
+    <h1>🐱 TIMATEcat</h1>
+    <p>Каталог всего кошачьего мира</p>
+  </div>
+  <ul class="menu">
+    <li>
+      <div class="menu-header"><span>🏠 Главная</span><span class="arrow">▶</span></div>
+      <ul class="submenu">
+        <li><a href="#about">О проекте</a></li>
+        <li><a href="#stats">Статистика</a></li>
+      </ul>
+    </li>
+    <li>
+      <div class="menu-header"><span>📚 Каталог пород <span class="badge">58</span></span><span class="arrow">▶</span></div>
+      <ul class="submenu">
+        <li><a href="#breeds-all">📋 Все породы А–Я</a></li>
+        <li><a href="#breeds-long">🧶 Длинношёрстные</a></li>
+        <li><a href="#breeds-short">✂️ Короткошёрстные</a></li>
+        <li><a href="#breeds-hairless">👽 Бесшёрстные</a></li>
+        <li><a href="#breeds-rex">🌀 Рексы (кудрявые)</a></li>
+        <li><a href="#breeds-bobtail">🐰 Бобтейлы (без хвоста)</a></li>
+        <li><a href="#breeds-wild">🐆 Дикие гибриды</a></li>
+      </ul>
+    </li>
+    <li>
+      <div class="menu-header"><span>🏘 Беспородные</span><span class="arrow">▶</span></div>
+      <ul class="submenu">
+        <li><a href="#domus">Что такое домус</a></li>
+        <li><a href="#domus-types">Виды беспородных</a></li>
+        <li><a href="#colors">Окрасы</a></li>
+      </ul>
+    </li>
+    <li>
+      <div class="menu-header"><span>💛 Имена для кошек</span><span class="arrow">▶</span></div>
+      <ul class="submenu">
+        <li><a href="#names">👧👦 Женские и мужские</a></li>
+        <li><a href="#names-tips">Как выбрать имя</a></li>
+      </ul>
+    </li>
+    <li>
+      <div class="menu-header"><span>⭐ Легендарные коты</span><span class="arrow">▶</span></div>
+      <ul class="submenu">
+        <li><a href="#legends-internet">Звёзды интернета</a></li>
+        <li><a href="#legends-history">Из истории</a></li>
+        <li><a href="#legends-fiction">Из книг и кино</a></li>
+      </ul>
+    </li>
+    <li>
+      <div class="menu-header"><span>😹 Мемные коты <span class="badge">HOT</span></span><span class="arrow">▶</span></div>
+      <ul class="submenu">
+        <li><a href="#memes-world">🌍 Мировые мемы</a></li>
+        <li><a href="#memes-ru">🇷🇺 Русские мемы</a></li>
+        <li><a href="#memes-classic">📜 Классика интернета</a></li>
+      </ul>
+    </li>
+    <li>
+      <div class="menu-header"><span>🎭 Повадки и характер</span><span class="arrow">▶</span></div>
+      <ul class="submenu">
+        <li><a href="#habits">Повадки</a></li>
+        <li><a href="#language">Язык кошек</a></li>
+      </ul>
+    </li>
+    <li>
+      <div class="menu-header"><span>💖 Уход и здоровье</span><span class="arrow">▶</span></div>
+      <ul class="submenu">
+        <li><a href="#care">Уход</a></li>
+        <li><a href="#food">Питание</a></li>
+        <li><a href="#danger">Что опасно</a></li>
+      </ul>
+    </li>
+    <li>
+      <div class="menu-header"><span>✨ Факты и рекорды</span><span class="arrow">▶</span></div>
+      <ul class="submenu">
+        <li><a href="#facts">Удивительные факты</a></li>
+        <li><a href="#records">Рекорды Гиннеса</a></li>
+      </ul>
+    </li>
+    <li>
+      <div class="menu-header"><span>🖼 Галерея</span><span class="arrow">▶</span></div>
+      <ul class="submenu">
+        <li><a href="#gallery">Большая галерея</a></li>
+      </ul>
+    </li>
+  </ul>
+</aside>
+
+<main>
+  <div class="hero">
+    <h1><span class="bounce">🐱</span> TIMATEcat <span class="bounce">🐈</span></h1>
+    <p>Самый полный каталог всего кошачьего мира: породы, беспородные, имена, легендарные коты, факты, повадки и всё про наших усатых!</p>
+  </div>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <h2>😺 О проекте TIMATEcat</h2>
+    <img class="section-hero" src="images/many-cats-group-together-1.jpg" alt="Много котиков" onerror="this.style.display='none'">
+    <p><strong>TIMATEcat</strong> — это гигантская энциклопедия для всех, кто любит котиков. Тут собрано <strong>больше 58 пород</strong>, все виды беспородных, около <strong>300 имён</strong>, легендарные коты, повадки, уход и десятки фактов.</p>
+    <p>Кошки живут рядом с человеком уже более <strong>9500 лет</strong>. В мире около <strong>600 миллионов домашних кошек</strong> и более <strong>70 официальных пород</strong>!</p>
+  </section>
+
+  <!-- STATS -->
+  <section id="stats">
+    <h2>📊 Кошки в цифрах</h2>
+    <div class="facts-grid">
+      <div class="fact-box"><span class="fact-num">600 млн</span><p>кошек в мире</p></div>
+      <div class="fact-box"><span class="fact-num">70+</span><p>признанных пород</p></div>
+      <div class="fact-box"><span class="fact-num">9500</span><p>лет рядом с людьми</p></div>
+      <div class="fact-box"><span class="fact-num">300+</span><p>вариантов окрасов</p></div>
+      <div class="fact-box"><span class="fact-num">15–20</span><p>лет средняя жизнь</p></div>
+      <div class="fact-box"><span class="fact-num">38</span><p>лет — рекорд долгожителя</p></div>
+    </div>
+  </section>
+
+  <!-- ==== ALL BREEDS ==== -->
+  <section id="breeds-all">
+    <h2>📚 Каталог пород кошек</h2>
+    <img class="section-hero" src="images/maine-coon-cat-portrait-1.jpg" alt="Мейн-кун" onerror="this.style.display='none'">
+    <div class="filter-bar">
+      <input type="text" id="search" placeholder="🔍 Найди породу: название, страна, характер...">
+    </div>
+    <div class="counter" id="counter-all"></div>
+    <div class="catalog" id="catalog-grid"></div>
+  </section>
+
+  <section id="breeds-long">
+    <h2>🧶 Длинношёрстные породы</h2>
+    <img class="section-hero" src="images/persian-cat-fluffy-1.jpg" alt="Персидская" onerror="this.style.display='none'">
+    <p>Пушистые красавцы с роскошной шубой — требуют регулярного вычёсывания, но покоряют внешним видом.</p>
+    <div class="counter" id="counter-long"></div>
+    <div class="catalog" id="grid-long"></div>
+  </section>
+
+  <section id="breeds-short">
+    <h2>✂️ Короткошёрстные породы</h2>
+    <img class="section-hero" src="images/british-shorthair-cat-blue-1.jpg" alt="Британская" onerror="this.style.display='none'">
+    <p>Практичные, красивые и требуют минимум ухода за шерстью.</p>
+    <div class="counter" id="counter-short"></div>
+    <div class="catalog" id="grid-short"></div>
+  </section>
+
+  <section id="breeds-hairless">
+    <h2>👽 Бесшёрстные породы</h2>
+    <img class="section-hero" src="images/sphynx-cat-hairless-1.webp" alt="Сфинкс" onerror="this.style.display='none'">
+    <p>«Инопланетные» котики без шерсти — тёплые, ласковые и часто гипоаллергенные.</p>
+    <div class="counter" id="counter-hairless"></div>
+    <div class="catalog" id="grid-hairless"></div>
+  </section>
+
+  <section id="breeds-rex">
+    <h2>🌀 Рексы — кудрявые кошки</h2>
+    <img class="section-hero" src="images/selkirk-rex-cat-curly-1.jpg" alt="Селкирк рекс" onerror="this.style.display='none'">
+    <p>Волнистая или кучерявая шерсть — редкое и удивительное явление среди кошек.</p>
+    <div class="counter" id="counter-rex"></div>
+    <div class="catalog" id="grid-rex"></div>
+  </section>
+
+  <section id="breeds-bobtail">
+    <h2>🐰 Бобтейлы — кошки без хвоста</h2>
+    <img class="section-hero" src="images/kurilian-bobtail-cat-1.webp" alt="Курильский бобтейл" onerror="this.style.display='none'">
+    <p>Породы с укороченным хвостом-помпоном или полностью без хвоста.</p>
+    <div class="counter" id="counter-bobtail"></div>
+    <div class="catalog" id="grid-bobtail"></div>
+  </section>
+
+  <section id="breeds-wild">
+    <h2>🐆 Дикие гибриды</h2>
+    <img class="section-hero" src="images/savannah-cat-serval-hybrid-1.jpg" alt="Саванна" onerror="this.style.display='none'">
+    <p>Породы, полученные скрещиванием домашних кошек с дикими: сервалом, леопардовой кошкой, барханным котом.</p>
+    <div class="counter" id="counter-wild"></div>
+    <div class="catalog" id="grid-wild"></div>
+  </section>
+
+  <!-- DOMUS -->
+  <section id="domus">
+    <h2>🏘 Домусы — беспородные кошки</h2>
+    <img class="section-hero" src="images/stray-street-cat-1.jpg" alt="Уличный кот">
+    <p><strong>Домус (Felis catus domesticus)</strong> — так фелинологи называют обычную беспородную кошку. Иногда их называют «дворянами», «дворовыми котами» или метисами. Это самая большая и разнообразная «порода» в мире!</p>
+    <h3>🧬 Как выглядит домус?</h3>
+    <ul>
+      <li><strong>Размер:</strong> обычно средний — коты 5–5,5 кг, кошки до 4 кг</li>
+      <li><strong>Северные</strong> домусы крупнее и пушистее — так теплее</li>
+      <li><strong>Южные</strong> — тоньше, изящнее, короткошёрстные</li>
+      <li><strong>Окрасы:</strong> любые! Рыжие, чёрные, белые, дымчатые, трёхцветные…</li>
+      <li><strong>Глаза:</strong> жёлтые, изумрудные, золотисто-коричневые, иногда голубые</li>
+    </ul>
+    <h3>💪 Почему они крутые?</h3>
+    <ul>
+      <li>Крепкое здоровье — «эффект гибрида» защищает от наследственных болезней</li>
+      <li>Живут долго — 15–20 лет при хорошем уходе</li>
+      <li>Умные, сообразительные, отличные охотники</li>
+      <li>Каждая — уникальная! Двух одинаковых не найдёшь</li>
+    </ul>
+  </section>
+
+  <section id="domus-types">
+    <h2>🐈 Виды беспородных кошек</h2>
+    <div class="grid-boxes" id="domus-types-grid"></div>
+  </section>
+
+  <!-- COLORS -->
+  <section id="colors">
+    <h2>🎨 Основные окрасы кошек</h2>
+    <div class="colors-grid" id="colors-grid"></div>
+    <h3>🧬 Немного генетики</h3>
+    <p>Все окрасы кошек — это комбинации всего <strong>двух базовых пигментов</strong>: <strong>эумеланин</strong> (чёрный/коричневый) и <strong>феомеланин</strong> (рыжий). Плюс гены, которые разбавляют цвет, добавляют белые пятна, создают рисунок табби или колор-пойнт.</p>
+    <p>Именно поэтому у одной пары кошек могут родиться котята <strong>совершенно разного</strong> окраса!</p>
+  </section>
+
+  <!-- NAMES -->
+  <section id="names">
+    <h2>💛 Имена для кошек (300+)</h2>
+    <p style="text-align:center;font-size:1.1em;">Большая коллекция имён — от классики до экзотики.</p>
+    <div class="names-container">
+      <div class="names-column girls">
+        <img class="hdr" src="images/girl-kitten-pink-cute-1.jpg" alt="Кошечка" onerror="this.style.display='none'">
+        <h3>👧 Женские имена (150+)</h3>
+        <div class="inner">
+          <h4>🌸 Классика</h4>
+          <ul class="names-list">
+            <li>Мурка</li><li>Мася</li><li>Муся</li><li>Соня</li><li>Ася</li>
+            <li>Симка</li><li>Дуся</li><li>Кися</li><li>Пуся</li><li>Мила</li>
+            <li>Нюша</li><li>Ласка</li><li>Тася</li><li>Тося</li><li>Матильда</li>
+          </ul>
+          <h4>👑 Аристократические</h4>
+          <ul class="names-list">
+            <li>Багира</li><li>Клеопатра</li><li>Виктория</li><li>Изабелла</li><li>Аврора</li>
+            <li>София</li><li>Диана</li><li>Афина</li><li>Ариэль</li><li>Есения</li>
+            <li>Забава</li><li>Милана</li><li>Николь</li><li>Анжелика</li><li>Стефания</li>
+          </ul>
+          <h4>🌺 Иностранные</h4>
+          <ul class="names-list">
+            <li>Луна</li><li>Белла</li><li>Мия</li><li>Хлоя</li><li>Молли</li>
+            <li>Лили</li><li>Дейзи</li><li>Роузи</li><li>Ханна</li><li>Эмма</li>
+            <li>Сакура</li><li>Юки</li><li>Мими</li><li>Ноко</li><li>Найла</li>
+            <li>Кира</li><li>Дана</li><li>Лея</li><li>Зара</li><li>Тиша</li>
+          </ul>
+          <h4>🍭 Милые и смешные</h4>
+          <ul class="names-list">
+            <li>Плюшка</li><li>Булочка</li><li>Печенька</li><li>Тыковка</li><li>Ириска</li>
+            <li>Пуговка</li><li>Ватрушка</li><li>Мармеладка</li><li>Черничка</li><li>Клубничка</li>
+            <li>Кнопка</li><li>Пушинка</li><li>Мохнатка</li><li>Кисуля</li><li>Лапка</li>
+            <li>Няша</li><li>Мурлыка</li><li>Пушистя</li><li>Люси</li><li>Тучка</li>
+          </ul>
+          <h4>🌙 Мифические</h4>
+          <ul class="names-list">
+            <li>Гера</li><li>Ирида</li><li>Веста</li><li>Артемида</li><li>Селена</li>
+            <li>Фрея</li><li>Атена</li><li>Мойра</li><li>Нюкта</li><li>Гея</li>
+          </ul>
+          <h4>🎨 По окрасу</h4>
+          <ul class="names-list">
+            <li>Снежка</li><li>Пантера</li><li>Рыжуля</li><li>Ночка</li><li>Дымка</li>
+            <li>Серка</li><li>Белка</li><li>Пеструшка</li><li>Голди</li><li>Джинджер</li>
+          </ul>
+          <h4>🍒 Съедобные</h4>
+          <ul class="names-list">
+            <li>Вишенка</li><li>Малинка</li><li>Кола</li><li>Мокка</li><li>Латте</li>
+            <li>Чиззи</li><li>Ромашка</li><li>Карамелька</li><li>Нутелла</li><li>Круассан</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="names-column boys">
+        <img class="hdr" src="images/boy-male-cat-handsome-1.jpg" alt="Котик" onerror="this.style.display='none'">
+        <h3>👦 Мужские имена (150+)</h3>
+        <div class="inner">
+          <h4>🌟 Классика</h4>
+          <ul class="names-list">
+            <li>Барсик</li><li>Тимоша</li><li>Васька</li><li>Мурзик</li><li>Кузя</li>
+            <li>Тишка</li><li>Пушок</li><li>Рыжик</li><li>Дымок</li><li>Тимка</li>
+            <li>Персик</li><li>Марсик</li><li>Кеша</li><li>Яшка</li><li>Гриша</li>
+          </ul>
+          <h4>👑 Аристократические</h4>
+          <ul class="names-list">
+            <li>Цезарь</li><li>Император</li><li>Барон</li><li>Граф</li><li>Принц</li>
+            <li>Маркиз</li><li>Лорд</li><li>Кинг</li><li>Султан</li><li>Викинг</li>
+            <li>Артур</li><li>Ричард</li><li>Наполеон</li><li>Оскар</li><li>Тиберий</li>
+          </ul>
+          <h4>🌍 Иностранные</h4>
+          <ul class="names-list">
+            <li>Том</li><li>Джек</li><li>Лео</li><li>Макс</li><li>Оливер</li>
+            <li>Чарли</li><li>Симба</li><li>Тайсон</li><li>Рекс</li><li>Локи</li>
+            <li>Тор</li><li>Один</li><li>Феликс</li><li>Мило</li><li>Гарфилд</li>
+            <li>Космо</li><li>Оззи</li><li>Райан</li><li>Финн</li><li>Эйс</li>
+          </ul>
+          <h4>😹 Смешные и милые</h4>
+          <ul class="names-list">
+            <li>Пельмень</li><li>Батон</li><li>Пирожок</li><li>Тортик</li><li>Кекс</li>
+            <li>Бублик</li><li>Сырник</li><li>Пончик</li><li>Пряник</li><li>Мармелад</li>
+            <li>Пузик</li><li>Толстик</li><li>Шустрик</li><li>Мохнатик</li><li>Ушастик</li>
+            <li>Хвостик</li><li>Лапка</li><li>Мяук</li><li>Мурчик</li><li>Пушистик</li>
+          </ul>
+          <h4>⚔️ Мифические</h4>
+          <ul class="names-list">
+            <li>Зевс</li><li>Аполлон</li><li>Арес</li><li>Гефест</li><li>Гермес</li>
+            <li>Ра</li><li>Осирис</li><li>Анубис</li><li>Хатор</li><li>Атлас</li>
+            <li>Ясон</li><li>Ахилл</li><li>Гектор</li><li>Персей</li><li>Феникс</li>
+          </ul>
+          <h4>🎨 По окрасу</h4>
+          <ul class="names-list">
+            <li>Уголёк</li><li>Снежок</li><li>Рыжий</li><li>Огонёк</li><li>Дым</li>
+            <li>Смоки</li><li>Блэки</li><li>Вайти</li><li>Голди</li><li>Табс</li>
+          </ul>
+          <h4>🎮 Из культуры</h4>
+          <ul class="names-list">
+            <li>Пикачу</li><li>Йода</li><li>Гэндальф</li><li>Дарт</li><li>Нео</li>
+            <li>Спайк</li><li>Соник</li><li>Марио</li><li>Бэтмен</li><li>Халк</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="names-tips">
+    <h2>💡 Как выбрать имя котику?</h2>
+    <div class="grid-boxes" id="tips-grid"></div>
+  </section>
+
+  <!-- LEGENDARY -->
+  <section id="legends-internet">
+    <h2>⭐ Легендарные коты интернета</h2>
+    <div class="catalog" id="legends-internet-grid"></div>
+  </section>
+
+  <section id="legends-history">
+    <h2>📜 Легендарные коты из истории</h2>
+    <div class="catalog" id="legends-history-grid"></div>
+  </section>
+
+  <section id="legends-fiction">
+    <h2>🎬 Знаменитые коты из книг и кино</h2>
+    <div class="catalog" id="legends-fiction-grid"></div>
+  </section>
+
+  <!-- ==== МЕМНЫЕ КОТЫ ==== -->
+  <section id="memes-world">
+    <h2>😹 Мемные коты — мировые звёзды интернета</h2>
+    <img class="section-hero" src="images/smudge-cat-woman-yelling-meme-1.jpg" alt="Мемные коты">
+    <p style="text-align:center;font-size:1.1em;">История каждого мема: кто хозяин, как всё начиналось, почему стало вирусным. 🐱🔥</p>
+    <div class="catalog" id="memes-world-grid"></div>
+  </section>
+
+  <section id="memes-ru">
+    <h2>🇷🇺 Русские мемные коты</h2>
+    <img class="section-hero" src="images/natasha-vstavaj-cats-meme-russian-1.jpg" alt="Русские мемы">
+    <p style="text-align:center;">Наши, родные! От «Наташи» до «продоёте рыбов»</p>
+    <div class="catalog" id="memes-ru-grid"></div>
+  </section>
+
+  <section id="memes-classic">
+    <h2>📜 Классика интернета — старые мемы</h2>
+    <img class="section-hero" src="images/happy-cat-i-can-has-cheezburger-original-1.webp" alt="I Can Has Cheezburger">
+    <p style="text-align:center;">Мемы-долгожители, с которых начиналась интернет-культура котиков</p>
+    <div class="catalog" id="memes-classic-grid"></div>
+  </section>
+
+  <!-- HABITS -->
+  <section id="habits">
+    <h2>🎭 Повадки кошек</h2>
+    <div class="grid-boxes" id="habits-grid"></div>
+  </section>
+
+  <section id="language">
+    <h2>🗣 Язык кошек — как понять любимца</h2>
+    <div class="grid-boxes" id="language-grid"></div>
+  </section>
+
+  <!-- CARE -->
+  <section id="care">
+    <h2>💖 Уход за кошкой</h2>
+    <div class="grid-boxes" id="care-grid"></div>
+  </section>
+
+  <section id="food">
+    <h2>🍽 Питание кошки</h2>
+    <img class="section-hero" src="images/cat-eating-food-bowl-1.jpg" alt="Кошка ест">
+    <h3>✅ Что можно</h3>
+    <ul>
+      <li>Качественный сухой корм (премиум/супер-премиум) по возрасту</li>
+      <li>Влажный корм — обязательно, для здоровья почек</li>
+      <li>Отварная нежирная курица, индейка, говядина</li>
+      <li>Отварная рыба без костей — не чаще 1 раза в неделю</li>
+      <li>Специальные лакомства и травка для кошек</li>
+      <li>Всегда свежая вода в чистой миске</li>
+    </ul>
+    <h3>❌ Что нельзя категорически</h3>
+    <table>
+      <tr><th>Продукт</th><th>Почему опасно</th></tr>
+      <tr><td>🍫 Шоколад</td><td>Теобромин — смертельный яд</td></tr>
+      <tr><td>🧅 Лук и чеснок</td><td>Разрушают эритроциты</td></tr>
+      <tr><td>🍇 Виноград и изюм</td><td>Почечная недостаточность</td></tr>
+      <tr><td>🥛 Коровье молоко</td><td>Взрослые не переваривают лактозу</td></tr>
+      <tr><td>🐟 Сырая рыба</td><td>Разрушает витамин B1</td></tr>
+      <tr><td>🥩 Свинина</td><td>Слишком жирная</td></tr>
+      <tr><td>🍺 Алкоголь</td><td>Смертельно даже в малых дозах</td></tr>
+      <tr><td>☕ Кофеин</td><td>Токсичен для сердца</td></tr>
+      <tr><td>🌰 Орехи (макадамия)</td><td>Токсичны</td></tr>
+    </table>
+  </section>
+
+  <section id="danger">
+    <h2>⚠️ Что опасно для кошек</h2>
+    <img class="section-hero" src="images/cat-lily-flower-dangerous-1.jpg" alt="Лилии">
+    <ul>
+      <li><strong>Растения:</strong> лилии (СМЕРТЕЛЬНО!), тюльпаны, диффенбахия, азалия</li>
+      <li><strong>Химия:</strong> отбеливатели, антифриз (сладкий!), эфирные масла</li>
+      <li><strong>Открытые окна без сеток</strong> — кошки часто падают</li>
+      <li><strong>Стиральная машина</strong> — всегда проверяй перед стиркой</li>
+      <li><strong>Нитки, резинки, пакеты</strong> — риск удушения</li>
+      <li><strong>Человеческие лекарства</strong> — парацетамол смертелен для кошек!</li>
+    </ul>
+  </section>
+
+  <!-- FACTS -->
+  <section id="facts">
+    <h2>✨ Удивительные факты</h2>
+    <img class="section-hero" src="images/cat-whiskers-close-up-macro-1.jpg" alt="Усы">
+    <div class="facts-grid">
+      <div class="fact-box"><span class="fact-num">32</span><p>мышцы в каждом ухе</p></div>
+      <div class="fact-box"><span class="fact-num">230</span><p>костей в скелете</p></div>
+      <div class="fact-box"><span class="fact-num">6×</span><p>лучше видит в темноте</p></div>
+      <div class="fact-box"><span class="fact-num">100+</span><p>звуков издаёт</p></div>
+      <div class="fact-box"><span class="fact-num">48 км/ч</span><p>макс. скорость</p></div>
+      <div class="fact-box"><span class="fact-num">38 °C</span><p>нормальная температура</p></div>
+      <div class="fact-box"><span class="fact-num">15–20</span><p>лет средняя жизнь</p></div>
+      <div class="fact-box"><span class="fact-num">270°</span><p>поворот ушей</p></div>
+      <div class="fact-box"><span class="fact-num">7 м</span><p>прыжок в длину</p></div>
+      <div class="fact-box"><span class="fact-num">5×</span><p>роста прыгает вверх</p></div>
+      <div class="fact-box"><span class="fact-num">24</span><p>уса-вибриссы</p></div>
+      <div class="fact-box"><span class="fact-num">3</span><p>века на каждом глазу</p></div>
+    </div>
+    <h3>🤯 Ещё факты</h3>
+    <ul>
+      <li>Кошки не чувствуют сладкого — у них отсутствуют рецепторы</li>
+      <li>Отпечаток носа у кошки уникален — как отпечаток пальца у человека</li>
+      <li>Кошка приземляется на лапы благодаря «выпрямляющему рефлексу»</li>
+      <li>Кошки видят в цвете, но хуже нас — их мир в сине-жёлтых тонах</li>
+      <li>Усы — орган осязания. Кошка меряет ими, пролезет ли в щель</li>
+      <li>Кошки потеют только через подушечки лап</li>
+      <li>Мяуканье имитирует плач младенца — так они манипулируют людьми!</li>
+      <li>Кошки узнают голос хозяина среди тысячи других</li>
+    </ul>
+  </section>
+
+  <section id="records">
+    <h2>🏆 Кошачьи рекорды Гиннеса</h2>
+    <div class="grid-boxes" id="records-grid"></div>
+  </section>
+
+  <!-- GALLERY -->
+  <section id="gallery">
+    <h2>🖼 Большая галерея котиков</h2>
+    <p style="text-align:center;">Клик по картинке — откроется на весь экран!</p>
+    <div class="gallery" id="big-gallery"></div>
+  </section>
+
+  <footer>
+    <p><strong>TIMATEcat</strong> © 2026 — сделано с любовью к котикам 🐾</p>
+    <p>Все котики мира заслуживают дом, ласку и вкусняшки!</p>
+    <div class="paws">🐾 🐾 🐾 🐾 🐾</div>
+  </footer>
+</main>
+
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<!-- Base64 images bundle (all cat images embedded to bypass CORS/sandbox) -->
+<script src="images_base64.js"></script>
+
+<script>
+// ============ ЗАМЕНА images/*.jpg НА BASE64 ============
+// Хелпер: получить base64 (или оригинальный путь, если base64 нет)
+function IMG(src){
+  if(window.IMAGES && window.IMAGES[src]) return window.IMAGES[src];
+  return src;
+}
+// Замена всех уже существующих <img> с src="images/..." на base64
+function replaceImgSrc(el){
+  if(!el) return;
+  if(el.tagName === 'IMG'){
+    var src = el.getAttribute('src');
+    if(src && src.indexOf('images/') === 0 && window.IMAGES && window.IMAGES[src]){
+      el.src = window.IMAGES[src];
+    }
+  }
+  if(el.querySelectorAll){
+    var imgs = el.querySelectorAll('img');
+    for(var i=0; i<imgs.length; i++){
+      var src = imgs[i].getAttribute('src');
+      if(src && src.indexOf('images/') === 0 && window.IMAGES && window.IMAGES[src]){
+        imgs[i].src = window.IMAGES[src];
+      }
+    }
+  }
+}
+// Перехватываем setAttribute и присваивание innerHTML, чтобы динамические картинки тоже заменялись
+// (простой вариант: MutationObserver + периодический прогон)
+replaceImgSrc(document.body);
+var observer = new MutationObserver(function(mutations){
+  for(var i=0; i<mutations.length; i++){
+    var m = mutations[i];
+    for(var j=0; j<m.addedNodes.length; j++){
+      if(m.addedNodes[j].nodeType === 1){
+        replaceImgSrc(m.addedNodes[j]);
+      }
+    }
+    // Также если атрибут src изменился
+    if(m.type === 'attributes' && m.attributeName === 'src'){
+      replaceImgSrc(m.target);
+    }
+  }
+});
+observer.observe(document.body, {childList: true, subtree: true, attributes: true, attributeFilter:['src']});
+// Ещё несколько прогонов на всякий случай
+setTimeout(function(){ replaceImgSrc(document.body); }, 100);
+setTimeout(function(){ replaceImgSrc(document.body); }, 500);
+setTimeout(function(){ replaceImgSrc(document.body); }, 1500);
+
+// ============ ПОРОДЫ ============
+var breeds = [
+  {name:"Абиссинская", img:"images/abyssinian-cat-1.jpg", origin:"Эфиопия", size:"Средняя", coat:"Короткая тикированная", character:"Энергичный, любопытный, «кот-обезьянка», не любит одиночества.", tags:["короткая","активная"]},
+  {name:"Австралийская дымчатая", img:"images/bengal-cat-spotted-1.jpg", origin:"Австралия", size:"Средняя", coat:"Короткая пятнистая", character:"Спокойная, дружелюбная, гибрид абиссинца и бирмы.", tags:["короткая","гибрид"]},
+  {name:"Американская короткошёрстная", img:"images/exotic-shorthair-cat-1.webp", origin:"США", size:"Средняя–крупная", coat:"Короткая плотная", character:"Крепкое здоровье, спокойный характер, дружелюбие.", tags:["короткая","семейная"]},
+  {name:"Американский керл", img:"images/american-curl-cat-ears-1.jpg", origin:"США", size:"Средняя", coat:"Разная", character:"Забавные загнутые ушки, дружелюбный, игривый.", tags:["короткая","необычная"]},
+  {name:"Американский бобтейл", img:"images/kurilian-bobtail-cat-1.webp", origin:"США", size:"Средняя–крупная", coat:"Разная", character:"Короткий хвост, ум как у собаки, преданный.", tags:["бобтейл","короткая"]},
+  {name:"Балинезийская", img:"images/balinese-cat-longhair-siamese-1.jpg", origin:"США", size:"Средняя", coat:"Полудлинная колор-пойнт", character:"«Длинношерстный сиамец» — умный, говорливый.", tags:["длинная","говорящая"]},
+  {name:"Бенгальская", img:"images/bengal-cat-spotted-1.jpg", origin:"США", size:"Средняя–крупная", coat:"Короткая пятнистая", character:"Дикая внешность, обожает воду и активные игры.", tags:["короткая","дикий","экзотическая"]},
+  {name:"Бирма Священная", img:"images/sacred-birman-cat-1.jpg", origin:"Бирма", size:"Средняя", coat:"Полудлинная колор-пойнт", character:"Спокойный, нежный, «белые перчатки» на лапах.", tags:["длинная","спокойная"]},
+  {name:"Бомбейская", img:"images/bombay-cat-black-1.jpg", origin:"США", size:"Средняя", coat:"Короткая чёрная как смоль", character:"«Мини-пантера», ласковая и общительная.", tags:["короткая"]},
+  {name:"Британская короткошёрстная", img:"images/british-shorthair-cat-blue-1.jpg", origin:"Великобритания", size:"Средняя–крупная", coat:"Короткая плюшевая", character:"Спокойный, независимый, «плюшевый мишка».", tags:["короткая","спокойная"]},
+  {name:"Британская длинношёрстная", img:"images/british-shorthair-cat-blue-2.jpg", origin:"Великобритания", size:"Средняя–крупная", coat:"Полудлинная плюшевая", character:"Как британец, но пушистый.", tags:["длинная","спокойная"]},
+  {name:"Бурманская", img:"images/burmese-cat-brown-1.jpg", origin:"Бирма", size:"Средняя", coat:"Короткая шелковистая", character:"Общительная, «кот-солнышко», любит компанию.", tags:["короткая","семейная"]},
+  {name:"Бурмилла", img:"images/burmese-cat-brown-1.jpg", origin:"Великобритания", size:"Средняя", coat:"Короткая серебристая", character:"Гибрид бурмы и шиншиллы, с чёрной подводкой глаз.", tags:["короткая","гибрид"]},
+  {name:"Гавана-браун", img:"images/havana-brown-cat-1.png", origin:"Великобритания", size:"Средняя", coat:"Короткая шоколадная", character:"Умный, любопытный, редкий — в мире меньше 1000 особей.", tags:["короткая","редкая"]},
+  {name:"Девон-рекс", img:"images/devon-rex-cat-elf-ears-1.jpg", origin:"Англия", size:"Небольшая", coat:"Кудрявая короткая", character:"«Эльф» — общительный, преданный, «вечный ребёнок».", tags:["короткая","рекс","активная"]},
+  {name:"Донской сфинкс", img:"images/donskoy-sphynx-cat-1.jpg", origin:"Россия", size:"Средняя", coat:"Без шерсти", character:"Умный, ласковый, «липучка», требует тепла.", tags:["лысая"]},
+  {name:"Египетская мау", img:"images/egyptian-mau-spotted-cat-1.jpg", origin:"Египет", size:"Средняя", coat:"Короткая пятнистая", character:"Самая быстрая домашняя кошка (до 48 км/ч)!", tags:["короткая","активная","экзотическая"]},
+  {name:"Корат", img:"images/korat-cat-silver-1.jpg", origin:"Таиланд", size:"Средняя", coat:"Короткая серебристо-голубая", character:"«Кот удачи» в Таиланде. Умный, тихий, преданный.", tags:["короткая","редкая"]},
+  {name:"Корниш-рекс", img:"images/cornish-rex-cat-curly-1.webp", origin:"Англия", size:"Средняя", coat:"Волнистая короткая", character:"Игривый, «вечный ребёнок», без остевого волоса.", tags:["короткая","рекс","активная"]},
+  {name:"Курильский бобтейл", img:"images/kurilian-bobtail-cat-1.webp", origin:"Россия (Курилы)", size:"Средняя–крупная", coat:"Разная", character:"Хвост-помпон, охотник, преданный как собака.", tags:["бобтейл","активная"]},
+  {name:"Лаперм", img:"images/laperm-cat-curly-1.png", origin:"США", size:"Средняя", coat:"Кудрявая", character:"Ласковый, любопытный, «кот с химией».", tags:["длинная","рекс"]},
+  {name:"Ликои", img:"images/lykoi-werewolf-cat-1.jpg", origin:"США", size:"Средняя", coat:"Частично лысая", character:"«Кот-оборотень»! Умный, преданный, активный.", tags:["лысая","необычная","редкая"]},
+  {name:"Мейн-кун", img:"images/maine-coon-cat-portrait-1.jpg", origin:"США", size:"Крупная до 12 кг", coat:"Длинная", character:"«Нежный великан» — ласковый, умный, огромный.", tags:["длинная","семейная"]},
+  {name:"Манчкин", img:"images/munchkin-cat-short-legs-1.jpg", origin:"США", size:"Небольшая", coat:"Разная", character:"«Такса» кошачьего мира. Короткие лапки, активный характер.", tags:["короткая","необычная"]},
+  {name:"Мэнкс", img:"images/manx-cat-tailless-1.jpg", origin:"Остров Мэн", size:"Средняя", coat:"Короткая или длинная", character:"Бесхвостый, дружелюбный, ловкий охотник.", tags:["бобтейл","семейная"]},
+  {name:"Небелунг", img:"images/nebelung-cat-blue-longhair-1.jpg", origin:"США", size:"Средняя", coat:"Полудлинная серебристо-голубая", character:"«Длинношерстная русская голубая». Тихий и преданный.", tags:["длинная","редкая"]},
+  {name:"Невская маскарадная", img:"images/neva-masquerade-cat-1.png", origin:"Россия", size:"Крупная", coat:"Длинная колор-пойнт", character:"«Сибирская в маске» — мощная и ласковая.", tags:["длинная","семейная"]},
+  {name:"Норвежская лесная", img:"images/norwegian-forest-cat-1.jpg", origin:"Норвегия", size:"Крупная", coat:"Длинная двойная", character:"Сильный, независимый, любит лазать. Викинг!", tags:["длинная"]},
+  {name:"Оцикет", img:"images/ocicat-spotted-1.jpg", origin:"США", size:"Средняя–крупная", coat:"Короткая пятнистая", character:"«Домашний оцелот» — умный, активный, ласковый.", tags:["короткая","активная","экзотическая"]},
+  {name:"Ориентальная короткошёрстная", img:"images/oriental-shorthair-cat-1.jpg", origin:"Таиланд", size:"Средняя", coat:"Очень короткая", character:"Стройная, разговорчивая, умная. Более 300 окрасов!", tags:["короткая","активная","говорящая"]},
+  {name:"Персидская", img:"images/persian-cat-fluffy-1.jpg", origin:"Иран", size:"Средняя", coat:"Очень длинная", character:"Спокойный, царственный, требует ежедневного ухода.", tags:["длинная","спокойная"]},
+  {name:"Персидская колор-пойнт", img:"images/persian-cat-fluffy-2.jpg", origin:"Иран/США", size:"Средняя", coat:"Очень длинная", character:"Перс с сиамской окраской, голубоглазый.", tags:["длинная","спокойная"]},
+  {name:"Петерболд", img:"images/peterbald-cat-1.jpg", origin:"Россия", size:"Средняя", coat:"Без шерсти или пух", character:"Умный, ласковый, очень активный.", tags:["лысая","активная"]},
+  {name:"Пиксибоб", img:"images/pixie-bob-cat-1.jpg", origin:"США", size:"Крупная", coat:"Разная", character:"«Домашняя рысь» — с кисточками и коротким хвостом.", tags:["бобтейл","дикий"]},
+  {name:"Рэгдолл", img:"images/ragdoll-cat-portrait-1.png", origin:"США", size:"Крупная", coat:"Полудлинная", character:"«Тряпичная кукла» — расслабляется на руках.", tags:["длинная","семейная"]},
+  {name:"Русская голубая", img:"images/russian-blue-cat-1.jpg", origin:"Россия", size:"Средняя", coat:"Короткая серебристо-голубая", character:"Тихий, застенчивый, преданный одному хозяину.", tags:["короткая","спокойная"]},
+  {name:"Саванна", img:"images/savannah-cat-serval-hybrid-1.jpg", origin:"США", size:"Очень крупная", coat:"Короткая пятнистая", character:"Гибрид с сервалом, дикий и энергичный. Стоит до $25 000!", tags:["короткая","дикий","экзотическая"]},
+  {name:"Селкирк-рекс", img:"images/selkirk-rex-cat-curly-1.jpg", origin:"США", size:"Средняя–крупная", coat:"Кудрявая", character:"«Кот-барашек» — терпеливый и ласковый.", tags:["длинная","рекс","спокойная"]},
+  {name:"Серенгети", img:"images/serengeti-cat-1.jpg", origin:"США", size:"Средняя–крупная", coat:"Короткая пятнистая", character:"Похожа на сервала, но без диких генов.", tags:["короткая","экзотическая"]},
+  {name:"Сиамская", img:"images/siamese-cat-blue-eyes-1.jpg", origin:"Таиланд", size:"Средняя", coat:"Короткая колор-пойнт", character:"Разговорчивый, ревнивый, умный, преданный.", tags:["короткая","говорящая","активная"]},
+  {name:"Сибирская", img:"images/siberian-cat-fluffy-1.jpg", origin:"Россия", size:"Крупная", coat:"Длинная тройная", character:"Мощный охотник, ласковый с семьёй, гипоаллергенна.", tags:["длинная","семейная"]},
+  {name:"Сингапура", img:"images/singapura-cat-small-1.jpg", origin:"Сингапур", size:"Самая маленькая (2–3 кг)", coat:"Короткая тикированная", character:"Крошечная и активная. Самая маленькая порода.", tags:["короткая","маленькая"]},
+  {name:"Сноу-шу", img:"images/snowshoe-cat-white-paws-1.png", origin:"США", size:"Средняя", coat:"Короткая", character:"«Снежная туфелька» — с белыми лапками. Игривая.", tags:["короткая","редкая"]},
+  {name:"Сомали", img:"images/somali-cat-fox-1.jpg", origin:"Сомали", size:"Средняя", coat:"Полудлинная «лисий хвост»", character:"Активный, игривый, любопытный. «Абиссинец в шубе».", tags:["длинная","активная"]},
+  {name:"Сфинкс канадский", img:"images/sphynx-cat-hairless-1.webp", origin:"Канада", size:"Средняя", coat:"Без шерсти", character:"Активный, преданный, «липучка», очень социальный.", tags:["лысая","активная"]},
+  {name:"Тойгер", img:"images/toyger-cat-tiger-1.jpg", origin:"США", size:"Средняя–крупная", coat:"Короткая тигровая", character:"«Домашний тигр» — умный и ласковый.", tags:["короткая","экзотическая"]},
+  {name:"Тонкинская", img:"images/tonkinese-cat-1.jpg", origin:"Канада", size:"Средняя", coat:"Короткая", character:"Гибрид сиамца и бурмы. Умная, «кошка-собака».", tags:["короткая","активная"]},
+  {name:"Турецкая ангора", img:"images/turkish-angora-white-cat-1.png", origin:"Турция", size:"Средняя", coat:"Длинная шелковистая", character:"Грациозный, умный, часто с голубыми глазами.", tags:["длинная","активная"]},
+  {name:"Турецкий ван", img:"images/turkish-van-cat-swimming-1.webp", origin:"Турция", size:"Средняя–крупная", coat:"Полудлинная", character:"Обожает воду и плавание! Активный и умный.", tags:["длинная","активная"]},
+  {name:"Украинский левкой", img:"images/ukrainian-levkoy-cat-1.jpg", origin:"Украина", size:"Средняя", coat:"Без шерсти", character:"Лысый + вислоухий = очень необычный вид.", tags:["лысая","необычная","редкая"]},
+  {name:"Хаусси (чауси)", img:"images/chausie-cat-1.jpg", origin:"США", size:"Крупная", coat:"Короткая", character:"Гибрид с камышовым котом. Мускулистый охотник.", tags:["короткая","дикий","экзотическая"]},
+  {name:"Шартрез", img:"images/chartreux-cat-blue-grey-1.png", origin:"Франция", size:"Средняя–крупная", coat:"Короткая голубая", character:"Тихая, умная, «улыбающаяся кошка Франции».", tags:["короткая","редкая"]},
+  {name:"Шотландская вислоухая", img:"images/scottish-fold-cat-1.jpg", origin:"Шотландия", size:"Средняя", coat:"Короткая", character:"Тихий, добрый, обожает людей, вислоухий.", tags:["короткая","спокойная","семейная"]},
+  {name:"Шотландская прямоухая", img:"images/scottish-fold-cat-2.jpg", origin:"Шотландия", size:"Средняя", coat:"Короткая", character:"Как вислоухая, но с обычными ушами.", tags:["короткая","спокойная"]},
+  {name:"Экзотическая короткошёрстная", img:"images/exotic-shorthair-cat-1.webp", origin:"США", size:"Средняя", coat:"Короткая плюшевая", character:"«Персидская в халате» — ленивая и милая.", tags:["короткая","спокойная"]},
+  {name:"Японский бобтейл", img:"images/japanese-bobtail-cat-1.jpg", origin:"Япония", size:"Средняя", coat:"Разная", character:"Хвост-помпон, «манэки-нэко». Символ удачи.", tags:["бобтейл","активная"]}
+];
+
+// Дополнительные картинки для популярных пород
+var extraImgs = {
+  "Мейн-кун": ["images/maine-coon-cat-portrait-2.jpg", "images/maine-coon-giant-cat-white-1.jpg"],
+  "Британская короткошёрстная": ["images/british-shorthair-cat-blue-2.jpg"],
+  "Шотландская вислоухая": ["images/scottish-fold-cat-2.jpg"],
+  "Сфинкс канадский": ["images/sphynx-cat-hairless-2.jpg"],
+  "Персидская": ["images/persian-cat-fluffy-2.jpg", "images/persian-cat-kitten-face-1.jpg"],
+  "Рэгдолл": ["images/ragdoll-cat-blue-eyes-1.jpg"],
+  "Бенгальская": ["images/bengal-cat-kitten-portrait-1.jpg"],
+  "Сиамская": ["images/siamese-cat-traditional-1.jpg"],
+  "Абиссинская": ["images/abyssinian-kitten-1.jpg"]
+};
+
+function render(list, targetId, counterId){
+  var grid = document.getElementById(targetId);
+  if(!grid) return;
+  grid.innerHTML = "";
+  if(counterId){
+    var c = document.getElementById(counterId);
+    if(c) c.textContent = "Найдено пород: " + list.length;
+  }
+  if(list.length === 0){
+    grid.innerHTML = "<p style='text-align:center;grid-column:1/-1;font-size:1.2em;'>😿 Такой породы не нашлось...</p>";
+    return;
+  }
+  var html = "";
+  for(var i=0; i<list.length; i++){
+    var b = list[i];
+    var tagsHtml = "";
+    for(var j=0; j<b.tags.length; j++){
+      tagsHtml += '<span class="tag">'+b.tags[j]+'</span>';
+    }
+    // формируем блок картинок (1 или несколько)
+    var imgBlock = '';
+    if(extraImgs[b.name] && extraImgs[b.name].length > 0){
+      var allImgs = [b.img].concat(extraImgs[b.name]);
+      imgBlock = '<div class="card-imgs">';
+      for(var k=0; k<allImgs.length; k++){
+        imgBlock += '<img src="'+IMG(allImgs[k])+'" alt="'+b.name+'" loading="lazy" onclick="openLightbox(\''+allImgs[k]+'\')" onerror="this.style.display=\'none\'">';
+      }
+      imgBlock += '</div>';
+    } else {
+      imgBlock = '<img src="'+IMG(b.img)+'" alt="'+b.name+'" loading="lazy" onclick="openLightbox(\''+b.img+'\')" onerror="this.style.background=\'#ffdcc2\';this.alt=\'🐱\'">';
+    }
+    html += '<div class="cat-card">' + imgBlock +
+      '<div class="card-body">' +
+      '<h3>'+b.name+'</h3>' +
+      '<div class="info">' +
+      '<p><strong>🌍 Родина:</strong> '+b.origin+'</p>' +
+      '<p><strong>📏 Размер:</strong> '+b.size+'</p>' +
+      '<p><strong>🧶 Шерсть:</strong> '+b.coat+'</p>' +
+      '<p><strong>💭 Характер:</strong> '+b.character+'</p>' +
+      '<div style="margin-top:10px;">'+tagsHtml+'</div>' +
+      '</div></div></div>';
+  }
+  grid.innerHTML = html;
+}
+
+// Хелпер для фильтра по тегам (регистронезависимо)
+function hasTag(b, tag){
+  for(var i=0;i<b.tags.length;i++){
+    if(b.tags[i].toLowerCase().indexOf(tag.toLowerCase()) !== -1) return true;
+  }
+  return false;
+}
+
+// Основной каталог
+render(breeds, "catalog-grid", "counter-all");
+// Подкатегории
+render(breeds.filter(function(b){ return hasTag(b,"длинная"); }), "grid-long", "counter-long");
+render(breeds.filter(function(b){ return hasTag(b,"короткая"); }), "grid-short", "counter-short");
+render(breeds.filter(function(b){ return hasTag(b,"лысая"); }), "grid-hairless", "counter-hairless");
+render(breeds.filter(function(b){ return hasTag(b,"рекс"); }), "grid-rex", "counter-rex");
+render(breeds.filter(function(b){ return hasTag(b,"бобтейл"); }), "grid-bobtail", "counter-bobtail");
+render(breeds.filter(function(b){ return hasTag(b,"дикий") || hasTag(b,"экзотическая"); }), "grid-wild", "counter-wild");
+
+// Поиск
+document.getElementById("search").addEventListener("input", function(e){
+  var q = e.target.value.toLowerCase();
+  var filtered = breeds.filter(function(b){
+    return b.name.toLowerCase().indexOf(q) !== -1 ||
+      b.origin.toLowerCase().indexOf(q) !== -1 ||
+      b.character.toLowerCase().indexOf(q) !== -1 ||
+      hasTag(b, q);
+  });
+  render(filtered, "catalog-grid", "counter-all");
+});
+
+// ============ БЕСПОРОДНЫЕ ТИПЫ ============
+var domusTypes = [
+  {img:"images/tabby-cat-orange-ginger-1.jpg", title:"🐯 Табби полосатый", text:"Классический полосатый окрас — самый близкий к дикому предку. Полосы помогают маскироваться."},
+  {img:"images/bengal-cat-spotted-1.jpg", title:"🐆 Табби пятнистый", text:"Вместо полос — пятна разного размера. У беспородных часто «разорванные» пятна-полосы."},
+  {img:"images/tabby-cat-orange-ginger-1.jpg", title:"🦊 Рыжий", text:"Огненно-рыжий окрас. Почти всегда — коты (у кошек редко)."},
+  {img:"images/bombay-cat-black-1.jpg", title:"🖤 Полностью чёрный", text:"«Домашняя пантера». В древности считались магическими животными."},
+  {img:"images/turkish-angora-white-cat-1.png", title:"🤍 Полностью белый", text:"Встречается редко. Часто с голубыми глазами и иногда с глухотой."},
+  {img:"images/tuxedo-cat-black-white-1.jpg", title:"🐧 Чёрно-белый (смокинг)", text:"Классический «джентльмен» — чёрное тело с белой грудью и лапами."},
+  {img:"images/calico-cat-tricolor-1.jpg", title:"🍁 Трёхцветный (калико)", text:"Белый + чёрный + рыжий. Почти всегда кошки! Приносят удачу."},
+  {img:"images/tortoiseshell-cat-torbie-1.jpg", title:"🌰 Черепаховый (торти)", text:"Причудливая смесь чёрного и рыжего без белого. Тоже почти всегда кошки."},
+  {img:"images/russian-blue-cat-1.jpg", title:"💨 Дымчатый (голубой)", text:"Серо-голубой окрас. В некоторых странах вывелись естественно."},
+  {img:"images/tuxedo-cat-black-white-1.jpg", title:"👞 С манишкой и «носочками»", text:"Тёмное тело, но белая грудка, лапки или мордочка. Очень нарядные!"},
+  {img:"images/siamese-cat-blue-eyes-1.jpg", title:"🎭 Колор-пойнт (сиамский тип)", text:"Светлое тело + тёмные лапы, хвост, уши. Признак примеси сиамцев."},
+  {img:"images/siberian-cat-fluffy-1.jpg", title:"🧶 Метис длинношёрстных", text:"Если в роду были персы, мейн-куны — получается пушистый метис."}
+];
+var dg = document.getElementById("domus-types-grid");
+var dh = "";
+for(var i=0;i<domusTypes.length;i++){
+  var d = domusTypes[i];
+  dh += '<div class="box"><img src="'+IMG(d.img)+'" onclick="openLightbox(\''+d.img+'\')" onerror="this.style.background=\'#ffdcc2\'"><div class="box-body"><h4>'+d.title+'</h4><p>'+d.text+'</p></div></div>';
+}
+dg.innerHTML = dh;
+
+// ============ ОКРАСЫ ============
+var colors = [
+  {img:"images/tabby-cat-orange-ginger-1.jpg", title:"Рыжий табби", text:"Огненные полосы, чаще у котов."},
+  {img:"images/calico-cat-tricolor-1.jpg", title:"Калико (трёхцветный)", text:"Белый + чёрный + рыжий. Только кошки!"},
+  {img:"images/tortoiseshell-cat-torbie-1.jpg", title:"Черепаховый", text:"Смесь чёрного и рыжего."},
+  {img:"images/tuxedo-cat-black-white-1.jpg", title:"Смокинг", text:"Чёрное тело, белая грудь и лапы."},
+  {img:"images/bombay-cat-black-1.jpg", title:"Полностью чёрный", text:"«Мини-пантера»."},
+  {img:"images/turkish-angora-white-cat-1.png", title:"Белый", text:"Редкий и роскошный."},
+  {img:"images/russian-blue-cat-1.jpg", title:"Голубой (дымчатый)", text:"Серебристо-серый."},
+  {img:"images/bengal-cat-spotted-1.jpg", title:"Пятнистый (споттед)", text:"Пятна как у леопарда."},
+  {img:"images/siamese-cat-blue-eyes-1.jpg", title:"Колор-пойнт", text:"Светлое тело, тёмные конечности."}
+];
+var cg = document.getElementById("colors-grid");
+var ch = "";
+for(var i=0;i<colors.length;i++){
+  var c = colors[i];
+  ch += '<div class="color-card"><img src="'+IMG(c.img)+'" onclick="openLightbox(\''+c.img+'\')" onerror="this.style.background=\'#ffdcc2\'"><div class="body"><h4>'+c.title+'</h4><p>'+c.text+'</p></div></div>';
+}
+cg.innerHTML = ch;
+
+// ============ СОВЕТЫ ПО ИМЕНАМ ============
+var tips = [
+  {img:"images/cat-name-tag-collar-1.jpg", title:"📏 Коротко и звучно", text:"Кошки лучше отзываются на имена в 1–2 слога с шипящими звуками: «Кс», «Ш», «Ч», «С»."},
+  {img:"images/tabby-cat-orange-ginger-1.jpg", title:"🎨 По внешности", text:"Смотри на окрас, размер, форму ушей. Пушистого — Пушок, чёрного — Уголёк."},
+  {img:"images/cat-playing-toy-string-1.webp", title:"🧠 По характеру", text:"Наблюдай пару дней — котёнок сам «покажет», кто он: тихоня, боец или разбойник."},
+  {img:"images/cat-ears-back-angry-hiss-1.jpg", title:"🚫 Не путай с командами", text:"Если в доме собака и её зовут «Кыш», не называй кота «Киш» — запутается."},
+  {img:"images/cat-purring-content-1.jpg", title:"🎓 Тест звуком", text:"Позови кота разными вариантами — на какое лучше реагирует, то и будет!"},
+  {img:"images/cat-eyes-green-macro-1.jpg", title:"🌟 Уникальность", text:"Не бойся необычных имён — коты не обижаются."}
+];
+var tg = document.getElementById("tips-grid");
+var th = "";
+for(var i=0;i<tips.length;i++){
+  var t = tips[i];
+  th += '<div class="box"><img src="'+IMG(t.img)+'" onclick="openLightbox(\''+t.img+'\')" onerror="this.style.background=\'#ffdcc2\'"><div class="box-body"><h4>'+t.title+'</h4><p>'+t.text+'</p></div></div>';
+}
+tg.innerHTML = th;
+
+// ============ ЛЕГЕНДАРНЫЕ ============
+function renderLegends(arr, id){
+  var g = document.getElementById(id);
+  var h = "";
+  for(var i=0;i<arr.length;i++){
+    var l = arr[i];
+    h += '<div class="legend-card"><img src="'+IMG(l.img)+'" onclick="openLightbox(\''+l.img+'\')" onerror="this.style.background=\'#ffdcc2\'"><div class="body"><h4>'+l.title+'</h4><p>'+l.text+'</p></div></div>';
+  }
+  g.innerHTML = h;
+}
+
+renderLegends([
+  {img:"images/grumpy-cat-tardar-sauce-1.jpg", title:"😾 Grumpy Cat (Tardar Sauce)", text:"2012–2019, США. Самый угрюмый кот на планете. «Сердитое» выражение — следствие врождённого недокуса. Стал вирусной звездой Reddit и заработал более $100 млн хозяйке. Снялся в кино, стал иконой интернета."},
+  {img:"images/nyan-cat-rainbow-meme-1.jpg", title:"🌈 Nyan Cat", text:"2011, США/Япония. Пиксельный кот с телом из Pop-Tart, летящий через космос по радуге. Один из главных мемов интернета всех времён."},
+  {img:"images/keyboard-cat-bento-1.jpg", title:"🎹 Keyboard Cat (Bento)", text:"2007, США. Оранжевый кот в кофточке, «играющий» на синтезаторе. Символ эпохи YouTube-мемов."},
+  {img:"images/lil-bub-cat-1.jpg", title:"👅 Lil Bub", text:"2011–2019, США. Крошечная кошечка с высунутым язычком. Собрала более $700 000 на помощь бездомным животным."},
+  {img:"images/maru-cat-box-japan-1.jpg", title:"📦 Maru", text:"2007, Япония. Кот, обожающий коробки. Более 500 млн просмотров на YouTube — рекорд Гиннеса как самый популярный кот."},
+  {img:"images/hamilton-hipster-cat-mustache-1.jpg", title:"👨‍🎨 Hamilton Hipster Cat", text:"2012, США. Белый кот с чёрной отметиной под носом — «усами». Мгновенно стал звездой Instagram."},
+  {img:"images/choupette-karl-lagerfeld-cat-1.jpg", title:"💎 Choupette", text:"2011, Франция. Кошка Карла Лагерфельда. Две горничные, шеф-повар, до $3 млн в год на рекламе. Унаследовала часть его состояния."}
+], "legends-internet-grid");
+
+renderLegends([
+  {img:"images/felicette-space-cat-astronaut-1.jpg", title:"🚀 Фелисетт — кот-космонавт", text:"Единственная кошка, побывавшая в космосе! Полёт совершила Франция в 1963 году. Фелисетт благополучно вернулась."},
+  {img:"images/stubbs-mayor-alaska-cat-1.jpg", title:"🗻 Стаббс — мэр города", text:"Рыжий кот 20 лет (1997–2017) был почётным мэром города Талкитна на Аляске."},
+  {img:"images/tama-stationmaster-cat-japan-1.png", title:"🚂 Тама — начальник станции", text:"Кошка из Японии, официально работавшая начальником железнодорожной станции Киси. Спасла станцию от закрытия!"},
+  {img:"images/larry-downing-street-cat-1.jpg", title:"🏛 Ларри — Главный Крысолов", text:"Официальная должность британского премьер-министра. Ларри служит с 2011 года и пережил уже нескольких премьеров!"},
+  {img:"images/hermitage-cats-museum-st-petersburg-1.jpg", title:"🎨 Коты Эрмитажа", text:"В Государственном Эрмитаже (СПб) уже 280+ лет живут коты — охраняют произведения искусства от мышей. Указ подписала Елизавета Петровна в 1745 году!"},
+  {img:"images/bastet-egyptian-cat-goddess-statue-1.jpg", title:"🧙 Богиня Бастет", text:"В древнем Египте кошек считали воплощением богини Бастет. За убийство кошки полагалась смертная казнь!"},
+  {img:"images/stray-street-cat-1.jpg", title:"⚓ Саймон — корабельный герой", text:"Кот с британского HMS Amethyst. В 1949 году был ранен, но продолжил ловить крыс. Единственный кот с медалью Дикин."}
+], "legends-history-grid");
+
+renderLegends([
+  {img:"images/puss-in-boots-cat-cartoon-1.gif", title:"🎩 Кот в сапогах", text:"Персонаж сказки Шарля Перро (1697). Хитрый и находчивый кот, который сделал бедного крестьянина богачом."},
+  {img:"images/cheshire-cat-alice-wonderland-1.jpg", title:"👽 Чеширский кот", text:"Из «Алисы в стране чудес» Льюиса Кэрролла. Умеет исчезать, оставляя только улыбку."},
+  {img:"images/behemoth-cat-master-margarita-1.jpg", title:"🎭 Бегемот", text:"Огромный чёрный кот из «Мастера и Маргариты» Булгакова — говорящий, пьющий и вооружённый."},
+  {img:"images/salem-cat-sabrina-teenage-witch-1.jpg", title:"🖤 Салем Саберхаген", text:"Из сериала «Сабрина — маленькая ведьма» (1996). Чёрный кот, который на самом деле — колдун, наказанный на 100 лет."},
+  {img:"images/tom-and-jerry-cat-mouse-1.gif", title:"🐁 Том", text:"Синий кот из «Том и Джерри» — вечный соперник мышонка. Мультсериал идёт с 1940 года!"},
+  {img:"images/garfield-cat-orange-comic-1.png", title:"🍕 Гарфилд", text:"Рыжий ленивый кот, обожающий лазанью и ненавидящий понедельники. Комикс с 1978 года."},
+  {img:"images/hello-kitty-character-1.jpg", title:"🎀 Hello Kitty", text:"Символ Японии с 1974 года. Хотя формально она не кошка, а «девочка», знают её все."},
+  {img:"images/matroskin-cat-prostokvashino-1.jpg", title:"🐄 Матроскин", text:"Хозяйственный кот из «Простоквашино», научивший поколения любить корову Мурку и бутерброды колбасой вниз."},
+  {img:"images/leopold-cat-soviet-cartoon-1.jpg", title:"☮️ Кот Леопольд", text:"Добрейший кот из советского мультфильма. Его фраза «Ребята, давайте жить дружно!» — вечная классика."},
+  {img:"images/cartoon-1.jpg", title:"🐶 Котёнок Гав", text:"Персонаж мультфильма — котёнок, который считал себя щенком. Милейший!"}
+], "legends-fiction-grid");
+
+// ============ МЕМНЫЕ КОТЫ ============
+function renderMemes(arr, id){
+  var g = document.getElementById(id);
+  if(!g) return;
+  var h = "";
+  for(var i=0; i<arr.length; i++){
+    var m = arr[i];
+    h += '<div class="meme-card">' +
+      '<img src="'+IMG(m.img)+'" alt="'+m.name+'" loading="lazy" onclick="openLightbox(\''+m.img+'\')" onerror="this.style.background=\'#ffdcc2\'">' +
+      '<div class="body">' +
+      '<h3>'+m.name+'</h3>' +
+      '<div class="meta">' +
+      '<div><strong>👤 Хозяин:</strong> '+m.owner+'</div>' +
+      '<div><strong>📅 Год:</strong> '+m.year+'</div>' +
+      '<div><strong>🌐 Откуда:</strong> '+m.source+'</div>' +
+      '</div>' +
+      '<p class="story">'+m.story+'</p>' +
+      '</div></div>';
+  }
+  g.innerHTML = h;
+}
+
+// ============ МИРОВЫЕ МЕМЫ (подробные истории) ============
+renderMemes([
+  {
+    name: "😾 Grumpy Cat (Сердитый кот)",
+    img: "images/grumpy-cat-tardar-sauce-1.jpg",
+    owner: "Табата Бундесен (Аризона, США). Кличка — Tardar Sauce (Соус Тардар).",
+    year: "22 сентября 2012",
+    source: "Reddit, сабреддит r/pics",
+    story: "🐱 <b>Как родился мем:</b> Кошка родилась 4 апреля 2012 года в семье Табаты Бундесен из Морристауна (Аризона). У неё была генетическая карликовость и врождённый недокус — челюсти не смыкались правильно, из-за чего мордочка всегда выглядела крайне недовольной. Дочка Табаты назвала кошку «Соус Тардар» — цвет шерсти напоминал ей соус тартар.<br><br>💥 <b>Как стал вирусным:</b> 22 сентября 2012 года брат Табаты Брайан Бундесен впервые выложил фото на Reddit в r/pics. Многие подумали, что это фотошоп! Тогда Табата загрузила видео — доказать, что кошка настоящая. За неделю мемы облетели весь мир.<br><br>💰 <b>Империя:</b> Появились агент, бестселлер, реклама Friskies, фильм «Grumpy Cat's Worst Christmas Ever» (2014) на Lifetime, восковая фигура у мадам Тюссо. За 7 лет заработала около <b>$100 млн</b>.<br><br>🕊 <b>Финал:</b> Умерла 14 мая 2019 от инфекции мочевыводящих путей, ей было всего 7 лет. Весь интернет плакал."
+  },
+  {
+    name: "😲 Woman Yelling at a Cat (Смадж)",
+    img: "images/smudge-cat-woman-yelling-meme-1.jpg",
+    owner: "Кот Смадж — Миранда Стиллабауэр (Оттава, Канада). Женщина — Тейлор Армстронг из «Настоящих домохозяек Беверли-Хиллз».",
+    year: "1 мая 2019 (кот — июнь 2018)",
+    source: "Twitter, пользователь @MISSINGEGIRL",
+    story: "🐱 <b>История кота:</b> Белый кот Смадж (Smudge) живёт в Оттаве, Канада, у Миранды Стиллабауэр. 19 июня 2018 года на семейном ужине Смадж запрыгнул на стул гостя и оказался прямо перед тарелкой с овощами. Растерянная мордочка кота была шедевром. Миранда выложила фото в Tumblr от блога <b>deadbefordeath</b> с подписью «he no like vegetals» — 50 000 лайков за год.<br><br>👩 <b>История женщины:</b> Скриншот — из 14-й серии 2-го сезона реалити-шоу «The Real Housewives of Beverly Hills» (эфир 5 декабря 2011 года). Тейлор Армстронг кричит на Камиллу Граммер из-за сплетен о её (Тейлор) абьюзивном браке. Кайли Ричардс её сдерживает.<br><br>💥 <b>Как соединились:</b> 1 мая 2019 года пользователь Twitter <b>@MISSINGEGIRL</b> впервые совместил два фото в одном посте: «These photos together is making me lose it» («Эти фото вместе меня добивают»). За 2 месяца — <b>78 900 ретвитов</b> и <b>276 800 лайков</b>.<br><br>🏆 <b>Что дальше:</b> Мем получил награду «Мем года» на Shorty Awards 2020. У Смаджа 1.4 млн подписчиков в Instagram @smudge_lord. Snoop Dogg, Джон Сина, футболисты NFL — все носили мерч со Смаджем. Сама Тейлор Армстронг одобрила мем и заявила: «Ok to laugh at these images»."
+  },
+  {
+    name: "🌈 Nyan Cat",
+    img: "images/nyan-cat-original-animated-meme-1.webp",
+    owner: "Крис Торрес (Даллас, США). Кошка-муза — Марти (Marty), умерла от кошачьего инфекционного перитонита (FIP).",
+    year: "2 апреля 2011",
+    source: "LOL-Comics (сайт художника), затем YouTube",
+    story: "🐱 <b>Как родился:</b> Художник-мультипликатор Крис Торрес (24 года) в апреле 2011 нарисовал 8-битную гифку: серый кот с телом розовой Pop-Tart летит через космос, оставляя за собой радугу. Рисунок был посвящён его любимой кошке Марти, недавно умершей от FIP. Кот получил имя «Nyan» — это японское звукоподражание кошачьему «мяу».<br><br>💥 <b>Как стал вирусным:</b> 5 апреля 2011 года пользователь <b>saraj00n</b> совместил гифку с японской вокалоид-песенкой «Nyanyanyanyanyanyanya!» певицы Момо Момонэ и загрузил на YouTube. Ролик набрал 100 млн просмотров за год — вошёл в топ-5 самых просматриваемых видео 2011 года.<br><br>💎 <b>NFT-революция:</b> В феврале 2021 года Крис Торрес продал оригинальную анимацию как <b>NFT за $580 000</b> на площадке Foundation.app. Это стало одной из самых громких NFT-продаж в истории.<br><br>🎮 <b>Влияние:</b> Nyan Cat есть везде — в играх (Terraria, Rainbow Six Siege), Google Doodle, каверах, ремиксах. Один из самых узнаваемых мемов всех времён."
+  },
+  {
+    name: "🎹 Keyboard Cat (Кот-пианист)",
+    img: "images/keyboard-cat-bento-1.jpg",
+    owner: "Чарли Шмидт (Спокан, США). Первый кот — Fatso (1984), второй «преемник» — Bento (2010–2018).",
+    year: "7 июня 2007 (снято в 1984!)",
+    source: "YouTube-канал Чарли Шмидта",
+    story: "🐱 <b>Как родился:</b> В 1984 году художник Чарли Шмидт из Спокана (штат Вашингтон) записал на VHS-кассету странное видео: он надел на своего рыжего кота Fatso детскую голубую распашонку и подложил ему под лапы игрушечный синтезатор. Кот «играл» мелодию, а хозяин двигал его лапками из-за камеры. Кассета пролежала на полке 23 года!<br><br>💥 <b>Как стал вирусным:</b> 7 июня 2007 года Чарли оцифровал старый ролик и загрузил на YouTube под названием «Charlie Schmidt's Cool Cat». В 2009 году комик <b>Brad O'Farrell</b> начал использовать финальные кадры (кот «уходит со сцены») как шутку в стиле «Play him off, Keyboard Cat!» — так провожают неудачные ролики. Формат стал вирусным.<br><br>🎬 <b>Слава:</b> Мем появился в «Скрабс», «Симпсонах», «Гриффинах», рекламе Weezer, Wonderful Pistachios (Super Bowl 2013), в The Colbert Report. У Fatso есть фильм в его честь.<br><br>🕊 <b>Смерть и преемник:</b> Настоящий Fatso умер ещё в 1987 году — задолго до славы. Чарли завёл рыжего кота Bento (2010), который «продолжил дело» в новых роликах. Bento умер 8 марта 2018 от рака. Сейчас «третий Keyboard Cat» — оранжевый котёнок Skinny."
+  },
+  {
+    name: "😮 Pop Cat (Кот-попкорн)",
+    img: "images/pop-cat-meme-original-1.jpg",
+    owner: "Кошка Oatmeal (Оутмил), хозяин — @XavierBFB (Твиттер, США).",
+    year: "август 2020",
+    source: "Twitter, затем TikTok и Discord",
+    story: "🐱 <b>Как родился:</b> Хозяин кошки Oatmeal (породы русская голубая) поймал редчайший момент: кошка открыла рот идеальным «O» — как будто говорит «Поп!». Фото было загружено в Twitter в августе 2020 года. Кто-то умный сделал анимацию: два кадра — «рот закрыт» и «рот открыт» — и они циклично сменяются, издавая звук «Pop!».<br><br>💥 <b>Как стал вирусным:</b> Мем взлетел на TikTok и в Discord-серверах как эмодзи-реакция. Каждый второй чат в 2020–2021 использовал Pop Cat.<br><br>🎮 <b>Игра popcat.click:</b> В июне 2021 года малайзийский студент запустил сайт <b>popcat.click</b> — просто нажимаешь на кота, он «попает». Была введена глобальная таблица лидеров по странам. За месяц игроки нажали <b>кнопку 6+ млрд раз</b>. Малайзия и Тайвань устроили международную битву за 1-е место — новости об этом были даже в The Guardian и BBC!<br><br>🕊 <b>Финал:</b> Кошка Oatmeal умерла в марте 2022 года. Хозяин объявил об этом в Twitter, весь мир скорбел. Ей поставили виртуальный памятник в игре."
+  },
+  {
+    name: "🥁 Bongo Cat",
+    img: "images/bongo-cat-meme-drums-1.png",
+    owner: "Художник <b>@StrayRogue</b> и аниматор <b>@DitzyFlama</b> (оба — Twitter).",
+    year: "8 мая 2018",
+    source: "Twitter",
+    story: "🐱 <b>Как родился:</b> 8 мая 2018 года пользователь Twitter <b>@StrayRogue</b> выложил милый минималистичный рисунок белого кота, сидящего перед столом. На следующий день <b>@DitzyFlama</b> анимировал кота, играющего в бонго под песню «Athletic Theme» из New Super Mario Bros. Пост собрал 260 000 лайков за сутки.<br><br>💥 <b>Как стал вирусным:</b> Bongo Cat превратился в универсальный шаблон: люди делали ремиксы с классической музыкой, метал-каверами, поп-хитами. Появился сайт <b>bongo.cat</b>, где можно «играть» котом на клавиатуре и барабанах — каждая клавиша соответствует своей ноте.<br><br>🎼 <b>Впечатляет:</b> Существуют полные оркестровые версии — Bongo Cat играет 5-ю симфонию Бетховена всеми лапами одновременно! Мем считается одним из самых добрых и позитивных в истории интернета."
+  },
+  {
+    name: "😢 Crying Cat (Плачущий кот)",
+    img: "images/crying-cat-meme-sad-1.png",
+    owner: "Собирательный образ — несколько котов разных хозяев с 2014 года.",
+    year: "2014 (первое фото), 2019 (пик популярности)",
+    source: "Reddit, Twitter, VK",
+    story: "🐱 <b>Как родился:</b> Первое исходное фото плачущего кота выложила в Reddit пользователь <b>Josh-Snyder</b> в 2014 году — там просто грустная кошка с покрасневшими от инфекции глазами. Само по себе фото не стало мемом.<br><br>💥 <b>Как стал вирусным:</b> В 2018–2019 годах группа творцов из Facebook-групп начала <b>дорисовывать</b> слёзы на разных фотографиях грустных котов через Photoshop. Мем-формат: кот с преувеличенными фотошопными слёзками + ироничная надпись в стиле «я, когда пицца закончилась».<br><br>🎨 <b>Развитие:</b> Появились десятки вариаций — весёлые плачущие коты, коты с сердечками из слёз, «плачущий кот с ножом» (Crying Cat with Knife) — угрожает и плачет одновременно. Мем стал универсальным способом выразить преувеличенные эмоции: и грусть, и радость, и ярость.<br><br>💡 <b>Интересно:</b> Настоящие кошки НЕ плачут от эмоций — у них просто слёзные каналы могут работать при воспалении или простуде."
+  },
+  {
+    name: "💼 Business Cat (Кот-босс)",
+    img: "images/business-cat-suit-tie-meme-1.jpg",
+    owner: "Формат Advice Animal, автор — Reddit-пользователь <b>Coreman</b>.",
+    year: "2010",
+    source: "Reddit, r/AdviceAnimals",
+    story: "🐱 <b>Как родился:</b> В 2010 году на Reddit появился формат мемов Advice Animals — картинки с животными в цветной «розе» с двухстрочной подписью. Кто-то сфотографировал своего кота на голубом фоне, где на него как будто «одет» галстук (эффект пятна на груди). Пользователь <b>Coreman</b> начал делать подписи в стиле корпоративного жаргона.<br><br>💥 <b>Как стал вирусным:</b> Юмор в контрасте: кот — символ лени и отдыха — вдруг ведёт себя как строгий начальник. Примеры: «Гоняешься за красной точкой на работе? Красная точка тебя уволит», «Спишь на клавиатуре — работаешь эффективно».<br><br>💼 <b>Влияние:</b> Business Cat стал шаблоном для тысяч корпоративных мемов. Даже реальные компании (Microsoft, Salesforce) использовали его в презентациях. Формат «кот в галстуке» — вечная классика."
+  },
+  {
+    name: "😭 Sad Cat / Мами (Mami)",
+    img: "images/mami-sad-cat-san-francisco-meme-1.jpg",
+    owner: "Alexis (США, Сан-Франциско). Кошка — Mami, друг — кот Morty.",
+    year: "2018",
+    source: "Instagram @mami_and_morty",
+    story: "🐱 <b>Как родился мем:</b> Кошка Mami — метис из приюта в Сан-Франциско. Она родилась с необычным разрезом глаз (уголки опущены вниз), из-за чего мордочка выглядит вечно печальной. Больше года Мами прожила на улице, была очень пугливой. Хозяйка Alexis приютила её и завела Instagram @mami_and_morty (сейчас 300 000+ подписчиков).<br><br>💥 <b>Как стал вирусным:</b> В 2018 году грустные фото Мами разлетелись по интернету. Каждое фото — как разбитое сердце. Часто используется с текстами: «Я, когда мой кот меня не хочет гладить», «Когда день ещё не начался, а уже устал».<br><br>🇷🇺 <b>В России:</b> Мами особенно полюбили в Рунете. Здесь её лицо стали ставить к ностальгическим текстам: «Помнишь, как ты в детстве любил плюшки? Я тебе ещё напеку. Ты только приезжай хоть иногда...» — от лица бабушки. Или к постам про СССР. Мами стала символом русской меланхолии.<br><br>❤️ <b>Реальность:</b> На самом деле Мами абсолютно счастлива дома — играет, ест, спит с Morty. Просто природа дала ей грустное лицо."
+  },
+  {
+    name: "🍁 Кленовый сироп, Дейв (Maple Syrup Cat)",
+    img: "images/grey-striped-cat-maple-syrup-dave-meme-1.webp",
+    owner: "Пользователь ВКонтакте <b>kirilblch</b> (Россия). Кот безымянный.",
+    year: "2017 (фото), пик — 2018",
+    source: "ВКонтакте, паблики про котов",
+    story: "🐱 <b>Как родился:</b> В 2017 году пользователь ВК <b>kirilblch</b> выложил фото своего толстого серого полосатого кота в детском клеенчатом слюнявчике с рисунком кленовых листьев. Подпись была: «Просто кость пушистая». Первая волна лайков — потому что кот очень философский.<br><br>💥 <b>Как стал вирусным:</b> В 2018 году кто-то заметил <b>кленовые листья на слюнявчике</b> и заменил подпись на: «— У нас закончился кленовый сироп, Дейв. — Позвони моему поставщику». Кот превратился в канадского хипстера-контрабандиста сиропа! Мем взорвался.<br><br>🏙 <b>Челябинский шкаф:</b> В городе Челябинске местный художник нарисовал этого кота на трансформаторной будке с надписью «Неси черешню». Это стало официальной городской достопримечательностью — туристы специально приезжают фоткаться с котом-братком.<br><br>💬 <b>Вариации:</b> Появились десятки версий: «Мужик, ты чё, коноплю не пробовал?», «Слышь, Дейв, а у тебя тоже понедельник?», «Гоу за пивом, Дейв»."
+  },
+  {
+    name: "🕺 Cat Vibing (CatJAM)",
+    img: "images/cat-vibing-dj-jaiden-meme-1.jpg",
+    owner: "@aefonia (Твиттер, Финляндия). Кот <b>Minette</b> (жил во Франции).",
+    year: "16 июня 2020",
+    source: "Twitter, затем эмодзи Twitch",
+    story: "🐱 <b>Как родился:</b> В июне 2020 года пользовательница Twitter <b>@aefonia</b> из Финляндии выложила короткое видео своей кошки Minette, которая ритмично мотает головой в такт песне «Bella Ciao». Кошка сидела на кухне и просто «врубалась» — как настоящий диджей.<br><br>💥 <b>Как стал вирусным:</b> Ролик собрал десятки миллионов просмотров. Люди начали накладывать под кота абсолютно любую музыку — от Моцарта до техно. Каждый ремикс становился хитом.<br><br>💜 <b>Эмодзи Twitch:</b> В июле 2020 сообщество Twitch добавило официальный эмодзи <b>catJAM</b>. Он мгновенно стал <b>самым используемым эмодзи в мире</b> — используется миллионы раз в день в чатах. Про катДжем говорят: «эмодзи одобрения от кота».<br><br>🕊 <b>Финал:</b> В июне 2022 года Minette пропала из дома. Хозяйка искала её несколько месяцев, но безуспешно. Интернет запомнит её как самого весёлого DJ-кота всех времён."
+  },
+  {
+    name: "🐈‍⬛ Longcat (Кот-струна)",
+    img: "images/longcat-meme-original-1.jpg",
+    owner: "Аноним из Японии. Кошка — <b>Shiroi (Nobiko)</b>, «белая».",
+    year: "2004 (фото), 2007 (мировая слава)",
+    source: "Японский форум 2channel → 4chan (/b/)",
+    story: "🐱 <b>Как родился:</b> В 2004 году анонимный пользователь японского форума <b>2channel</b> выложил фото своей белой кошки Nobiko (Shiroi), которую он держал вертикально за передние лапы. Из-за ракурса кошка казалась ЧУДОВИЩНО длинной — как будто на 2 метра.<br><br>💥 <b>Как стал вирусным:</b> В 2006–2007 годах картинку выложили на англоязычный 4chan (раздел /b/). Пользователи начали дорисовывать кота до бесконечности — «Longcat is looooong». Появились фейковые «доказательства», что Longcat в реальности достигает несколько километров.<br><br>👹 <b>Мифология мемов:</b> На 4chan создали целую религию: <b>Longcat = Бог</b>, его антипод <b>Tacgnol</b> (чёрный кот, «Longcat» задом наперёд) = дьявол. У них была космическая битва за судьбу интернета. Кошка Nobiko считалась «богиней мемов».<br><br>🕊 <b>Финал:</b> 8 сентября 2020 года хозяин Nobiko объявил в Twitter, что кошка мирно ушла из жизни в 18 лет. Интернет отреагировал массово: «Long live Longcat» — стало мемом года. Reddit, Twitter, 4chan одновременно провели минуту молчания."
+  }
+], "memes-world-grid");
+
+// ============ РУССКИЕ МЕМЫ ============
+renderMemes([
+  {
+    name: "🛏 Наташа, мы всё уронили",
+    img: "images/natasha-vstavaj-cats-meme-russian-1.jpg",
+    owner: "Автор — сообщество ВКонтакте <b>«Котизм»</b> (сейчас 4+ млн подписчиков).",
+    year: "начало 2019",
+    source: "Паблик ВКонтакте «Котизм»",
+    story: "🐱 <b>Как родился:</b> В начале 2019 года паблик «Котизм» выложил фотографию девушки, спящей под одеялом. Рядом с кроватью стояли несколько котиков и <b>с укором</b> смотрели на неё. Первая подпись была: «Наташа, мы всё уронили. Вставай, там пиздец, Наташа, серьёзно». Простая шутка про кошек-хулиганов.<br><br>💥 <b>Как стал вирусным:</b> Мем оказался идеальным для описания <b>ЛЮБОЙ</b> внешней катастрофы — от роста цен до политических новостей. Формула: «Наташа, вставай, [что-то ужасное произошло], Наташа». За месяц мем стал самым цитируемым в Рунете.<br><br>💬 <b>Классические варианты:</b><br>• «Наташа, вставай, доллар опять по 100, Наташа!»<br>• «Наташа, мы всё уронили, ГОСТ отменили, Наташа...»<br>• «Наташа, там курс криптовалют вниз ушёл, ВСТАВАЙ!»<br>• «Наташа, ты вроде на удалёнку хотела? Ну вот, эпидемия, Наташа»<br><br>🏆 <b>Статус:</b> В 2020 году признан ВЦИОМ одним из главных мемов десятилетия в России. Само имя «Наташа» стало нарицательным для человека, который «спит», пока мир рушится."
+  },
+  {
+    name: "🐟 Вы продоёте рыбов?",
+    img: "images/ribov-meme-1.jpg",
+    owner: "Фото сделал китайский фотограф в 2014 году. Мем в Рунете запустил анонимный пользователь ВК.",
+    year: "фото — 2014, мем — весна 2020",
+    source: "ВКонтакте, паблик «Ебанутые за деньги»",
+    story: "🐱 <b>Как родилось фото:</b> В 2014 году в китайском рыбном ларьке фотограф поймал момент, когда два толстых уличных кота <b>стояли на задних лапах</b> и с надеждой смотрели на прилавок с рыбой. Фото жило в интернете 6 лет как просто милая картинка.<br><br>💥 <b>Как стал вирусным:</b> В апреле-мае 2020 года (во время локдауна) пользователь ВК подписал фото диалогом:<br>«— Вы продоёте рыбов?<br>— Нет, просто показываю.<br>— Красивое...»<br><br>Намеренная <b>детская грамматика</b> («рыбов» вместо «рыбу», «продоёте» вместо «продаёте») — часть тренда «языка котов», начатого «не атпутю».<br><br>💬 <b>Массовое использование:</b> Мем стал шаблоном для абсолютно всего: «Вы продоёте зарплату? — Нет, просто показываю», «Вы продоёте счастье? — Нет, просто показываю». Реальные магазины начали делать вывески «Мы продоём рыбов» — маркетинговый ход.<br><br>🎨 <b>Мерч:</b> Есть чашки, футболки, наклейки, магниты, картины в галереях. Мем стал частью русской поп-культуры."
+  },
+  {
+    name: "🖕 Не атпутю",
+    img: "images/tabby-cat-orange-ginger-1.jpg",
+    owner: "Twitter-пользовательница <b>«Никотинка с Бровями»</b> (Россия).",
+    year: "2017",
+    source: "Twitter",
+    story: "🐱 <b>Как родился:</b> В 2017 году девушка в Twitter под ником «Никотинка с Бровями» выложила фото своего рыжего кота, который <b>вцепился лапами в её палец</b> и не давал забрать. Она подписала: «не атпутю».<br><br>💥 <b>Революция «языка котов»:</b> Эта одна строчка стала <b>началом целого явления</b> — все начали писать за котиков на нарочно сломанном языке, имитирующем детский лепет: «цмок» (поцелуй), «не хотю» (не хочу), «есь мяу» (есть еда?), «дай кусь» (укушу).<br><br>📚 <b>Наследники:</b> «Дратути», «Красивое», «Гошэн» (когда котик греется на солнышке), «покакул» — все родом из этого культурного взрыва. Целая пабликная культура (Котизм, Ниже пояса, Fluffygram) выросла на этом стиле.<br><br>💬 <b>Феномен:</b> «Не атпутю» — это уже не просто мем, а <b>интернет-диалект</b>. Молодое поколение общается так в чатах и переписке. Один из немногих русских котомемов, ставший языковой нормой."
+  },
+  {
+    name: "👋 Дратути (Привет от кота)",
+    img: "images/cat-window-watching-birds-1.webp",
+    owner: "Автор точно не установлен, распространение — паблики «Котизм», «MDK».",
+    year: "2017–2018",
+    source: "ВКонтакте, Twitter",
+    story: "🐱 <b>Как родился:</b> После взрыва «не атпутю» новая мода — писать за котов на детском языке. В 2017 году в паблике «Котизм» появилось фото кота, <b>выглядывающего из-за угла</b>, с подписью «дратути» (искажённое «здравствуйте»).<br><br>💥 <b>Как стал вирусным:</b> Формат оказался универсальным — <b>любое животное</b>, выглядывающее откуда-то (из коробки, из-за двери, из-под одеяла, из окна) с подписью «дратути» становилось мемом. Появились еноты-дратути, собаки-дратути, черепахи-дратути.<br><br>🌍 <b>Использование:</b> «Дратути» стало универсальным приветствием в чатах — вместо «Привет!». Особенно среди зумеров. Некоторые компании даже используют «дратути» в стикер-паках официальных мессенджеров (Telegram, WhatsApp)."
+  },
+  {
+    name: "😾 Челябинский кот-браток / Бендер",
+    img: "images/bendjy-fat-cat-food-meme-1.webp",
+    owner: "Пожилая итальянка <b>Нэлла Панетта</b> (Италия). Кот — Бендер (Bender).",
+    year: "весна 2021",
+    source: "TikTok @nella_panetta",
+    story: "🐱 <b>Как родился:</b> Толстый чёрно-белый кот с характерной <b>«чёлкой»</b> на лбу (как у героев «Жмурок») в видео громко возмущается, требует еду, качает башкой. Русские зрители TikTok были уверены — это «наш» кот, из челябинского двора.<br><br>💥 <b>Кто на самом деле:</b> Оказалось, что видео снимает пожилая <b>итальянка Нэлла Панетта</b> в своей квартире. Кота зовут <b>Бендер</b> (в честь того самого, из «Футурамы»), он итальянский беспризорник, которого Нэлла подобрала.<br><br>🍽 <b>Проблема:</b> У Бендера сильное ожирение (весит 9+ кг). Нэлла посадила его на строгую диету, поэтому кот вечно возмущается — «Наталья, ГДЕ МОЙ ОБЕД?!». Ирония в том, что именно из-за диеты и появились самые смешные видео.<br><br>💬 <b>Русская адаптация:</b> Zoomer-паблики перевели ролики с русскими субтитрами «братковским» лексиконом: «Слышь, ты чё, серьёзно?», «Нэлла, я тя щас укушу», «Отвечаешь? Отвечаешь за базар?». Так итальянский кот стал героем русского интернета."
+  }
+], "memes-ru-grid");
+
+// ============ КЛАССИКА ИНТЕРНЕТА ============
+renderMemes([
+  {
+    name: "🍔 I Can Has Cheezburger?",
+    img: "images/happy-cat-i-can-has-cheezburger-original-1.webp",
+    owner: "Фото — блогер <b>Эрик Накагава</b> (Гавайи). Кот — русская голубая по кличке Happy Cat.",
+    year: "11 января 2007",
+    source: "Форум Something Awful → сайт ICanHasCheezburger.com",
+    story: "🐱 <b>Как родился:</b> В январе 2007 года блогер Эрик Накагава (aka Cheezburger) с женой Кэри Унебасами наткнулись на фото улыбающейся русской голубой кошки на форуме Something Awful. Кошка выглядела как будто просит бургер. Они добавили <b>подпись на нарочно ломаном английском</b>: «I Can Has Cheezburger?» («Можна мне чизбургер?»).<br><br>💥 <b>Как стал вирусным:</b> Эрик и Кэри купили домен ICanHasCheezburger.com и начали публиковать сотни таких фото — с подписями на «lolspeak» (стилизованный неграмотный английский). За полгода сайт стал одним из ТОП-1000 самых посещаемых в мире.<br><br>💰 <b>Империя:</b> В сентябре 2007 года сайт продали за <b>$2 миллиона</b> инвестору Бену Хью, который создал целую сеть «Cheezburger Network» — десятки развлекательных сайтов. К 2012 году сеть посещало 25 млн человек в месяц.<br><br>🏛 <b>Исторический статус:</b> «I Can Has Cheezburger?» считается <b>ПЕРВЫМ МАССОВЫМ КОТОМЕМОМ</b> в истории. Именно он породил всю культуру lolcats, lolspeak и мемов с животными. Без этой картинки не было бы ни Grumpy Cat, ни Smudge, ни Nyan."
+  },
+  {
+    name: "👀 Ceiling Cat (Кот из потолка)",
+    img: "images/ceiling-cat-watching-meme-1.jpg",
+    owner: "Пользователь LiveJournal <b>laurie_ky</b> (США).",
+    year: "фото — 2006, мем — 2007",
+    source: "LiveJournal → 4chan → LOLCats.com",
+    story: "🐱 <b>Как родился:</b> В 2006 году американка laurie_ky ремонтировала потолок в ванной. Её кот запрыгнул на чердак и высунул голову в незакрытую дырку — «наблюдал» за хозяйкой сверху. Она сфоткала и выложила фото в свой LiveJournal.<br><br>💥 <b>Как стал вирусным:</b> В 2007 году фото попало на 4chan и LOLCats.com. Кто-то подписал: «Ceiling Cat is watching you masturbate» (в оригинальной версии). Родилась легенда: <b>Ceiling Cat всегда наблюдает</b>. Стал символом параноидального интернет-юмора.<br><br>🕎 <b>Религия LOLCats Bible:</b> Фанаты создали пародию на Библию — «LOLCat Bible», где Ceiling Cat = Бог, а Basement Cat (кот из подвала) = Дьявол. Есть даже переведённые на lolspeak версии всех книг Ветхого и Нового Заветов!<br><br>🎨 <b>Наследие:</b> Ceiling Cat стал одним из первых 'мем-вселенных' — вокруг него построено множество производных шуток. Хоть сейчас он не так популярен, все помнят: «Ceiling Cat is watching...»."
+  },
+  {
+    name: "🧐 Serious Cat (Серьёзный кот)",
+    img: "images/serious-cat-serious-business-meme-1.jpg",
+    owner: "Аноним. Оригинальное фото — русская голубая кошка.",
+    year: "2007",
+    source: "4chan, форум Something Awful",
+    story: "🐱 <b>Как родился:</b> Фото серой русской голубой кошки с невероятно сосредоточенным, почти <b>грозным</b> взглядом появилось на 4chan в 2007 году. Никаких эмоций — только БИЗНЕС.<br><br>💥 <b>Как стал вирусным:</b> Мем-формат «Serious Cat is Serious» — использовался в ответ на любую попытку пошутить на серьёзную тему. «Это серьёзно», «Не смеши меня», «This is srs bsns» (Serious Business).<br><br>📜 <b>Наследие:</b> Serious Cat — <b>предтеча Business Cat</b>. Первый мем, где кот был воплощением деловитости. Один из фундаментальных мемов раннего Web 2.0."
+  },
+  {
+    name: "🍞 Longcat is Loooong",
+    img: "images/longcat-meme-original-1.jpg",
+    owner: "Nobiko (Япония). См. отдельную карточку в мировых мемах.",
+    year: "2007",
+    source: "4chan /b/",
+    story: "🐱 <b>Как родился:</b> Кошка Nobiko, поднятая за передние лапы. Ракурс делает её нереально длинной. Оригинал — на форуме 2channel (Япония).<br><br>💥 <b>Как стал вирусным:</b> На 4chan /b/ дорисовывали кота до бесконечности: «Longcat is looooong». Появились фейковые «карты», где Longcat пересекает всю страну. Классика «продлевающих» мемов.<br><br>🕊 <b>Финал:</b> В 2020 году Nobiko умерла. Интернет провёл акцию «Long live Longcat». Одна из самых знаковых потерь мемной культуры."
+  },
+  {
+    name: "🐈 Polygon Cat (Танцующий 3D-кот)",
+    img: "images/polygon-cat-waffles-meme-1.jpg",
+    owner: "Аниматор <b>xponentialdesign</b> (США). Модель кота из графической программы.",
+    year: "2013",
+    source: "YouTube, затем Vine и Tumblr",
+    story: "🐱 <b>Как родился:</b> В 2013 году американский моушен-дизайнер xponentialdesign создал <b>простую низкополигональную 3D-модель</b> рыжего кота и заставил его танцевать под электронную музыку. Кот выглядел странно, угловато и абсурдно — как будто из ранней PlayStation.<br><br>💥 <b>Как стал вирусным:</b> Гифка мгновенно разлетелась на Tumblr и Vine. Появились сотни вариаций: кот танцует под классику, на скейте, на снежинке, в пустоте, среди звёзд. Стал <b>символом абсурдного гипножуткого юмора эры Vine</b>.<br><br>🎨 <b>Историческая роль:</b> Polygon Cat — один из первых 3D-мемов, где графика намеренно уродлива. Это открыло целое направление — «cursed images» и «low-poly aesthetics».<br><br>💫 <b>Возрождение:</b> В 2020–2021 годах TikTok заново открыл этот мем — молодое поколение узнало о нём через тренды под электронную музыку."
+  },
+  {
+    name: "🦁 Chonky Cat (Шкала пухликов)",
+    img: "images/chonky-cat-oh-long-johnson-meme-1.jpg",
+    owner: "Собирательный формат. Основной паблик — <b>Facebook «This Cat is C H O N K»</b> (Марк Розенталь).",
+    year: "2018",
+    source: "Facebook, Reddit r/Chonkers",
+    story: "🐱 <b>Как родился:</b> В 2018 году Марк Розенталь создал Facebook-группу <b>«This Cat is C H O N K»</b> — для фотографий очень толстых котов. За месяц группа собрала 300 000+ подписчиков. Ключевое слово «chonk» стало синонимом «пухляш».<br><br>💥 <b>Шкала толщины:</b> Пользователь Reddit создал знаменитую <b>«шкалу упитанности котиков»</b>:<br>• <b>A Fine Boi</b> — здоровый кот<br>• <b>He Chomnk</b> — пухляш<br>• <b>A Heckin' Chonker</b> — толстяк<br>• <b>H E F T Y C H O N K</b> — упитанный<br>• <b>MEGACHONKER</b> — очень большой<br>• <b>OH LAWD HE COMIN</b> — ходячий шар<br><br>💜 <b>Ирония:</b> Мем добрый, но параллельно поднял важную тему ожирения у домашних кошек. Ветеринары использовали шкалу, чтобы в шутливой форме объяснять хозяевам, что их «мимишка» на самом деле нуждается в диете. Сотни котиков были <b>спасены</b> благодаря этому мему — их хозяева наконец обратили внимание на проблему."
+  }
+], "memes-classic-grid");
+
+// ============ ПОВАДКИ ============
+var habits = [
+  {img:"images/cat-sleeping-bed-cozy-1.jpg", title:"😴 Много спит", text:"Кошка спит 12–16 часов в сутки. Котята и старики — до 20 часов! Это норма."},
+  {img:"images/cat-washing-licking-paw-1.jpg", title:"🐾 Умывается лапой", text:"Умывание — не только гигиена, но и способ успокоиться."},
+  {img:"images/cat-purring-content-1.jpg", title:"😽 Мурлыкает", text:"Мурлыканье лечит: частота 25–150 Гц ускоряет заживление костей и снижает стресс."},
+  {img:"images/cat-hunting-mouse-gift-1.webp", title:"🎁 Приносит «подарки»", text:"Мышки, игрушки, носки — это знак любви. Кошка делится с тобой добычей!"},
+  {img:"images/cat-in-cardboard-box-funny-1.jpg", title:"📦 Любит коробки", text:"Коробка — идеальное убежище: узкое, тёплое, безопасное."},
+  {img:"images/cat-window-watching-birds-1.webp", title:"🪟 Смотрит в окно", text:"«Кошачий телевизор» — птицы, деревья, машины. Может часами наблюдать."},
+  {img:"images/cat-belly-rub-trust-1.webp", title:"👅 Показывает живот", text:"Демонстрация живота — знак высшего доверия. Но не всегда просит его гладить!"},
+  {img:"images/cat-kneading-blanket-paws-1.webp", title:"🧶 Топчется лапами", text:"«Молочный шаг» — привычка из детства, когда котёнок давит на мамин живот. Знак блаженства."},
+  {img:"images/cat-stretching-morning-1.jpg", title:"🧘 Потягивается", text:"Кошки — мастера растяжки. Их «йога» держит мышцы в тонусе."},
+  {img:"images/cat-jumping-leaping-air-1.jpg", title:"🚀 Прыгает на 7 метров", text:"Кошки могут прыгнуть в 5 раз выше своего роста. Настоящие акробаты!"},
+  {img:"images/cat-playing-toy-string-1.webp", title:"🎯 Крадётся и трясёт задом", text:"Перед прыжком «наводит прицел» — так рассчитывает траекторию."},
+  {img:"images/cat-eyes-green-macro-1.jpg", title:"🔊 Разговаривает с тобой", text:"Взрослые кошки мяукают ТОЛЬКО для людей. Между собой они шипят и мурлыкают."}
+];
+var hg = document.getElementById("habits-grid");
+var hh = "";
+for(var i=0;i<habits.length;i++){
+  var h = habits[i];
+  hh += '<div class="box"><img src="'+IMG(h.img)+'" onclick="openLightbox(\''+h.img+'\')" onerror="this.style.background=\'#ffdcc2\'"><div class="box-body"><h4>'+h.title+'</h4><p>'+h.text+'</p></div></div>';
+}
+hg.innerHTML = hh;
+
+// ============ ЯЗЫК КОШЕК ============
+var language = [
+  {img:"images/cat-tail-up-happy-1.jpg", title:"🦒 Хвост трубой", text:"Радость, приветствие, дружелюбие."},
+  {img:"images/cat-ears-back-angry-hiss-1.jpg", title:"⚡ Хвост дёргается", text:"Раздражение или охотничий азарт. Лучше не трогать."},
+  {img:"images/cat-playing-toy-string-1.webp", title:"〰️ Хвост «крючком»", text:"«Привет, я в игривом настроении!»"},
+  {img:"images/cat-ears-back-angry-hiss-1.jpg", title:"💥 Хвост распушён", text:"Испуг или агрессия. Кот пытается казаться больше."},
+  {img:"images/cat-eyes-green-macro-1.jpg", title:"😳 Расширенные зрачки", text:"Возбуждение, страх или игра."},
+  {img:"images/cat-purring-content-1.jpg", title:"😌 Медленное моргание", text:"«Кошачий поцелуй» — знак любви. Моргни в ответ!"},
+  {img:"images/cat-ears-back-angry-hiss-1.jpg", title:"👂 Уши прижаты назад", text:"Страх или агрессия. Отойди!"},
+  {img:"images/cat-whiskers-close-up-macro-1.jpg", title:"🎯 Уши вперёд", text:"Заинтересованность, внимание."},
+  {img:"images/cat-purring-content-1.jpg", title:"😻 Мяу", text:"Только для людей. Просьба, приветствие, требование."},
+  {img:"images/cat-window-watching-birds-1.webp", title:"🐦 Треск и щебет", text:"При виде птиц за окном — охотничий инстинкт."},
+  {img:"images/cat-ears-back-angry-hiss-1.jpg", title:"🐍 Шипение", text:"Предупреждение: «Не подходи!»"},
+  {img:"images/cat-sleeping-bed-cozy-1.jpg", title:"💜 Мурлыканье", text:"Обычно счастье, но иногда — способ успокоиться при боли."}
+];
+var lg = document.getElementById("language-grid");
+var lh = "";
+for(var i=0;i<language.length;i++){
+  var l = language[i];
+  lh += '<div class="box"><img src="'+IMG(l.img)+'" onclick="openLightbox(\''+l.img+'\')" onerror="this.style.background=\'#ffdcc2\'"><div class="box-body"><h4>'+l.title+'</h4><p>'+l.text+'</p></div></div>';
+}
+lg.innerHTML = lh;
+
+// ============ УХОД ============
+var care = [
+  {img:"images/cat-grooming-brush-1.jpg", title:"🧼 Расчёсывание", text:"1–3 раза в неделю (длинношёрстных — ежедневно). Специальными щётками."},
+  {img:"images/cat-vet-doctor-checkup-1.jpg", title:"🏥 Ветеринар", text:"Ежегодная вакцинация и осмотр. После 7 лет — 2 раза в год."},
+  {img:"images/cat-eating-food-bowl-1.jpg", title:"🍽 Кормление", text:"Качественный корм по возрасту, чистая вода всегда."},
+  {img:"images/cat-playing-toy-string-1.webp", title:"🎾 Игра", text:"Минимум 15 минут в день. Удочки, мышки, лазер."},
+  {img:"images/cat-sleeping-bed-cozy-1.jpg", title:"🛏 Место для сна", text:"Уютный домик или лежанка. Кошки любят возвышенности."},
+  {img:"images/cat-name-tag-collar-1.jpg", title:"🏷 Идентификация", text:"Ошейник с адресом или чип — обязательно, если кот гуляет."},
+  {img:"images/cat-paws-close-up-1.jpg", title:"✂️ Стрижка когтей", text:"Раз в 2–3 недели специальными когтерезами."},
+  {img:"images/cat-purring-content-1.jpg", title:"❤️ Ласка", text:"Разговаривай ласково — коты узнают голос хозяина."}
+];
+var cg2 = document.getElementById("care-grid");
+var ch2 = "";
+for(var i=0;i<care.length;i++){
+  var c = care[i];
+  ch2 += '<div class="box"><img src="'+IMG(c.img)+'" onclick="openLightbox(\''+c.img+'\')" onerror="this.style.background=\'#ffdcc2\'"><div class="box-body"><h4>'+c.title+'</h4><p>'+c.text+'</p></div></div>';
+}
+cg2.innerHTML = ch2;
+
+// ============ РЕКОРДЫ ============
+var records = [
+  {img:"images/guinness-record-longest-cat-stewie-1.jpg", title:"👴 Самая старая", text:"Крим Пафф из Техаса прожила 38 лет и 3 дня (1967–2005)."},
+  {img:"images/maine-coon-cat-portrait-1.jpg", title:"📏 Самая длинная", text:"Мейн-кун Стьюи — 123 см от носа до кончика хвоста."},
+  {img:"images/savannah-cat-serval-hybrid-1.jpg", title:"🏔 Самая высокая", text:"Саванна Фенрир — 47,8 см в холке."},
+  {img:"images/cat-sleeping-bed-cozy-1.jpg", title:"⚖️ Самая тяжёлая", text:"Кот Химми из Австралии весил 21,3 кг."},
+  {img:"images/cat-hunting-mouse-gift-1.webp", title:"🐁 Лучший крысолов", text:"Кошка Таузер поймала 28 899 мышей за жизнь!"},
+  {img:"images/choupette-karl-lagerfeld-cat-1.jpg", title:"💰 Самое дорогое имущество", text:"Choupette унаследовала часть $200 млн Лагерфельда."},
+  {img:"images/grumpy-cat-tardar-sauce-1.jpg", title:"📱 Больше всего подписчиков", text:"Grumpy Cat и Нала — миллионы фолловеров в Instagram."},
+  {img:"images/cat-purring-content-1.jpg", title:"🎵 Самое громкое мурлыканье", text:"Кот Мерлин — 67,8 дБ (как пылесос!)."}
+];
+var rg = document.getElementById("records-grid");
+var rh = "";
+for(var i=0;i<records.length;i++){
+  var r = records[i];
+  rh += '<div class="box"><img src="'+IMG(r.img)+'" onclick="openLightbox(\''+r.img+'\')" onerror="this.style.background=\'#ffdcc2\'"><div class="box-body"><h4>'+r.title+'</h4><p>'+r.text+'</p></div></div>';
+}
+rg.innerHTML = rh;
+
+// ============ МЕНЮ (аккордеон) ============
+var headers = document.querySelectorAll('.menu-header');
+for(var i=0;i<headers.length;i++){
+  headers[i].addEventListener('click', function(){
+    this.classList.toggle('active');
+    var sub = this.nextElementSibling;
+    if(sub && sub.classList.contains('submenu')){
+      sub.classList.toggle('open');
+    }
+  });
+}
+// Открыть первое меню
+if(headers[0]) headers[0].click();
+// Открыть второе (каталог пород)
+if(headers[1]) headers[1].click();
+// Открыть меню мемных котов (5-й пункт)
+if(headers[5]) headers[5].click();
+
+// Мобильное закрытие
+var links = document.querySelectorAll('.submenu a');
+for(var i=0;i<links.length;i++){
+  links[i].addEventListener('click', function(){
+    if(window.innerWidth < 900){
+      document.getElementById('sidebar').classList.remove('open');
+    }
+  });
+}
+
+// ============ ГАЛЕРЕЯ ============
+var galleryImages = [
+  "images/maine-coon-cat-portrait-1.jpg","images/maine-coon-cat-portrait-2.jpg",
+  "images/british-shorthair-cat-blue-1.jpg","images/british-shorthair-cat-blue-2.jpg",
+  "images/scottish-fold-cat-1.jpg","images/scottish-fold-cat-2.jpg",
+  "images/sphynx-cat-hairless-1.webp","images/sphynx-cat-hairless-2.jpg",
+  "images/persian-cat-fluffy-1.jpg","images/persian-cat-fluffy-2.jpg",
+  "images/siamese-cat-blue-eyes-1.jpg","images/bengal-cat-spotted-1.jpg",
+  "images/ragdoll-cat-portrait-1.png","images/russian-blue-cat-1.jpg",
+  "images/abyssinian-cat-1.jpg","images/norwegian-forest-cat-1.jpg",
+  "images/siberian-cat-fluffy-1.jpg","images/turkish-van-cat-swimming-1.webp",
+  "images/bombay-cat-black-1.jpg","images/cornish-rex-cat-curly-1.webp",
+  "images/devon-rex-cat-elf-ears-1.jpg","images/manx-cat-tailless-1.jpg",
+  "images/exotic-shorthair-cat-1.webp","images/oriental-shorthair-cat-1.jpg",
+  "images/sacred-birman-cat-1.jpg","images/turkish-angora-white-cat-1.png",
+  "images/savannah-cat-serval-hybrid-1.jpg","images/toyger-cat-tiger-1.jpg",
+  "images/selkirk-rex-cat-curly-1.jpg","images/kurilian-bobtail-cat-1.webp",
+  "images/american-curl-cat-ears-1.jpg","images/egyptian-mau-spotted-cat-1.jpg",
+  "images/laperm-cat-curly-1.png","images/burmese-cat-brown-1.jpg",
+  "images/somali-cat-fox-1.jpg","images/munchkin-cat-short-legs-1.jpg",
+  "images/peterbald-cat-1.jpg","images/donskoy-sphynx-cat-1.jpg",
+  "images/ocicat-spotted-1.jpg","images/chartreux-cat-blue-grey-1.png",
+  "images/havana-brown-cat-1.png","images/nebelung-cat-blue-longhair-1.jpg",
+  "images/neva-masquerade-cat-1.png","images/singapura-cat-small-1.jpg",
+  "images/snowshoe-cat-white-paws-1.png","images/pixie-bob-cat-1.jpg",
+  "images/japanese-bobtail-cat-1.jpg","images/ukrainian-levkoy-cat-1.jpg",
+  "images/lykoi-werewolf-cat-1.jpg","images/chausie-cat-1.jpg",
+  "images/serengeti-cat-1.jpg","images/korat-cat-silver-1.jpg",
+  "images/tonkinese-cat-1.jpg","images/balinese-cat-longhair-siamese-1.jpg",
+  "images/grumpy-cat-tardar-sauce-1.jpg","images/nyan-cat-rainbow-meme-1.jpg",
+  "images/keyboard-cat-bento-1.jpg","images/lil-bub-cat-1.jpg",
+  "images/maru-cat-box-japan-1.jpg","images/hamilton-hipster-cat-mustache-1.jpg",
+  "images/choupette-karl-lagerfeld-cat-1.jpg","images/tabby-cat-orange-ginger-1.jpg",
+  "images/calico-cat-tricolor-1.jpg","images/tortoiseshell-cat-torbie-1.jpg",
+  "images/tuxedo-cat-black-white-1.jpg","images/stray-street-cat-1.jpg",
+  "images/kittens-playing-cute-1.jpg","images/kittens-playing-cute-2.jpg",
+  "images/cat-eyes-green-macro-1.jpg","images/cat-sleeping-cozy-1.png",
+  "images/cat-paws-close-up-1.jpg","images/cat-sleeping-bed-cozy-1.jpg",
+  "images/cat-washing-licking-paw-1.jpg","images/cat-purring-content-1.jpg",
+  "images/cat-in-cardboard-box-funny-1.jpg","images/cat-hunting-mouse-gift-1.webp",
+  "images/cat-belly-rub-trust-1.webp","images/cat-tail-up-happy-1.jpg",
+  "images/cat-ears-back-angry-hiss-1.jpg","images/cat-eating-food-bowl-1.jpg",
+  "images/cat-grooming-brush-1.jpg","images/cat-playing-toy-string-1.webp",
+  "images/cat-window-watching-birds-1.webp","images/cat-kneading-blanket-paws-1.webp",
+  "images/cat-stretching-morning-1.jpg","images/cat-jumping-leaping-air-1.jpg",
+  "images/cat-whiskers-close-up-macro-1.jpg","images/many-cats-group-together-1.jpg",
+  "images/cat-vet-doctor-checkup-1.jpg","images/cat-lily-flower-dangerous-1.jpg",
+  "images/felicette-space-cat-astronaut-1.jpg","images/stubbs-mayor-alaska-cat-1.jpg",
+  "images/tama-stationmaster-cat-japan-1.png","images/larry-downing-street-cat-1.jpg",
+  "images/hermitage-cats-museum-st-petersburg-1.jpg","images/bastet-egyptian-cat-goddess-statue-1.jpg",
+  "images/puss-in-boots-cat-cartoon-1.gif","images/cheshire-cat-alice-wonderland-1.jpg",
+  "images/behemoth-cat-master-margarita-1.jpg","images/salem-cat-sabrina-teenage-witch-1.jpg",
+  "images/tom-and-jerry-cat-mouse-1.gif","images/garfield-cat-orange-comic-1.png",
+  "images/hello-kitty-character-1.jpg","images/matroskin-cat-prostokvashino-1.jpg",
+  "images/leopold-cat-soviet-cartoon-1.jpg","images/cartoon-1.jpg",
+  "images/guinness-record-longest-cat-stewie-1.jpg","images/cat-name-tag-collar-1.jpg",
+  "images/girl-kitten-pink-cute-1.jpg","images/boy-male-cat-handsome-1.jpg",
+  "images/smudge-cat-woman-yelling-meme-1.jpg","images/pop-cat-meme-original-1.jpg",
+  "images/bongo-cat-meme-drums-1.png","images/crying-cat-meme-sad-1.png",
+  "images/business-cat-suit-tie-meme-1.jpg","images/i-can-has-cheezburger-cat-meme-1.jpg",
+  "images/happy-cat-i-can-has-cheezburger-original-1.webp","images/longcat-meme-original-1.jpg",
+  "images/serious-cat-serious-business-meme-1.jpg","images/chonky-cat-oh-long-johnson-meme-1.jpg",
+  "images/mami-sad-cat-san-francisco-meme-1.jpg","images/grey-striped-cat-maple-syrup-dave-meme-1.webp",
+  "images/cat-vibing-dj-jaiden-meme-1.jpg","images/ceiling-cat-watching-meme-1.jpg",
+  "images/natasha-vstavaj-cats-meme-russian-1.jpg","images/ribov-meme-1.jpg",
+  "images/polygon-cat-waffles-meme-1.jpg","images/bendjy-fat-cat-food-meme-1.webp",
+  "images/nyan-cat-original-animated-meme-1.webp","images/persian-cat-kitten-face-1.jpg",
+  "images/ragdoll-cat-blue-eyes-1.jpg","images/bengal-cat-kitten-portrait-1.jpg",
+  "images/siamese-cat-traditional-1.jpg","images/abyssinian-kitten-1.jpg",
+  "images/maine-coon-giant-cat-white-1.jpg"
+];
+var bigGallery = document.getElementById("big-gallery");
+var galleryHtml = "";
+for(var i=0;i<galleryImages.length;i++){
+  var src = galleryImages[i];
+  galleryHtml += '<img src="'+IMG(src)+'" loading="lazy" alt="cat" onclick="openLightbox(\''+src+'\')" onerror="this.style.display=\'none\'">';
+}
+bigGallery.innerHTML = galleryHtml;
+
+// ============ LIGHTBOX ============
+function openLightbox(src){
+  var real = (window.IMAGES && window.IMAGES[src]) ? window.IMAGES[src] : src;
+  document.getElementById("lightbox-img").src = real;
+  document.getElementById("lightbox").classList.add("open");
+}
+</script>
+
+</body>
+</html>
