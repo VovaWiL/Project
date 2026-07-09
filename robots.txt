@@ -1,0 +1,14 @@
+User-agent: *
+
+# Запрещаем индексацию служебных файлов и скриптов
+Disallow: /install_server.sh
+Disallow: /run.sh
+Disallow: /start.sh
+Disallow: /send.sh
+Disallow: /.git/
+Disallow: /.swp
+Disallow: /vercel.json
+Disallow: /yandex_1d29206b16ae2006.html
+
+# Указываем путь к карте сайта
+Sitemap: https://vovawil.github.io/Project/sitemap.xml
