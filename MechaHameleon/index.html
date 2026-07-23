@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meccha Chameleon Online</title>
+    <title>Meccha Chameleon - Pixel Painter Online</title>
     <style>
         body {
             margin: 0;
@@ -19,8 +19,9 @@
         }
         canvas {
             border: 4px solid #333;
-            background: #222;
+            background: #1a1a1a;
             box-shadow: 0 0 25px rgba(0,0,0,0.7);
+            cursor: crosshair;
         }
         .ui-panel {
             margin-top: 15px;
@@ -32,13 +33,27 @@
             border-radius: 8px;
             border: 1px solid #444;
         }
-        .color-preview {
+        .palette {
+            display: flex;
+            gap: 5px;
+        }
+        .color-btn {
+            width: 25px;
+            height: 25px;
+            border: 2px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .color-btn.active {
+            border-color: #fff;
+            transform: scale(1.1);
+        }
+        input[type="color"] {
+            border: none;
             width: 30px;
             height: 30px;
-            border: 2px solid #fff;
-            display: inline-block;
-            vertical-align: middle;
-            border-radius: 4px;
+            cursor: pointer;
+            background: none;
         }
         .instructions {
             margin-top: 8px;
@@ -46,7 +61,6 @@
             font-size: 13px;
         }
     </style>
-    <!-- Подключаем Socket.io с сервера -->
     <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
@@ -54,165 +68,240 @@
     <canvas id="gameCanvas" width="800" height="450"></canvas>
     
     <div class="ui-panel">
-        <div>Твой цвет: <span id="currentColorBox" class="color-preview" style="background-color: #ffffff;"></span></div>
-        <div>Цель: Встань на панель нужного цвета и нажми <b>E</b>, чтобы замаскироваться!</div>
+        <div>Кисть: 
+            <button onclick="setBrushSize(1)">1px</button>
+            <button onclick="setBrushSize(2)">2px</button>
+            <button onclick="setBrushSize(4)">4px</button>
+        </div>
+        <div class="palette" id="colorPalette">
+            <!-- Палитра цветов -->
+            <div class="color-btn active" style="background: #e74c3c;" onclick="selectColor('#e74c3c', this)"></div>
+            <div class="color-btn" style="background: #2ecc71;" onclick="selectColor('#2ecc71', this)"></div>
+            <div class="color-btn" style="background: #3498db;" onclick="selectColor('#3498db', this)"></div>
+            <div class="color-btn" style="background: #f1c40f;" onclick="selectColor('#f1c40f', this)"></div>
+            <div class="color-btn" style="background: #9b59b6;" onclick="selectColor('#9b59b6', this)"></div>
+            <div class="color-btn" style="background: #ffffff;" onclick="selectColor('#ffffff', this)"></div>
+            <div class="color-btn" style="background: #000000;" onclick="selectColor('#000000', this)"></div>
+        </div>
+        <div>Свой цвет: <input type="color" id="customColor" value="#ff5555" onchange="selectColor(this.value, null)"></div>
+        <div><b>ЛКМ</b> — красить тело | <b>ПКМ (или зажать Shift)</b> — пипетка</div>
     </div>
     
     <div class="instructions">
-        Управление: W, A, S, D — бегать. Клавиша E — пипетка / покраситься под цвет под тобой.
+        Управление: W, A, S, D — бегать по арене.
     </div>
 
     <script>
         const socket = io();
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const colorBox = document.getElementById('currentColorBox');
+
+        // Размер сетки персонажа в пикселях (например, 16x20 блоков)
+        const GRID_W = 16;
+        const GRID_H = 20;
+        const PIXEL_SIZE = 3; // Размер одного пикселя на экране (итоговый размер персонажа 48x60)
 
         let players = {};
+        let currentColor = '#e74c3c';
+        let brushSize = 1;
+        let isDrawing = false;
+        let isPipetteActive = false;
 
-        // Локальный игрок
-        let player = {
+        // Создаем начальную сетку пикселей для игрока (заполненную белым цветом)
+        function createEmptySkin() {
+            let skin = [];
+            for (let y = 0; y < GRID_H; y++) {
+                let row = [];
+                for (let x = 0; x < GRID_W; x++) {
+                    row.push('#ffffff'); // Белый фон кожи
+                }
+                skin.push(row);
+            }
+            return skin;
+        }
+
+        let localPlayer = {
             x: 100,
             y: 200,
-            width: 35,
-            height: 45,
-            speed: 3.5,
-            color: '#ffffff',
-            isPainted: false
+            skin: createEmptySkin()
         };
-
-        // Зоны окружения
-        let environment = [
-            { x: 50, y: 50, width: 120, height: 120, color: '#e74c3c' },
-            { x: 300, y: 50, width: 200, height: 100, color: '#2ecc71' },
-            { x: 600, y: 80, width: 150, height: 150, color: '#3498db' },
-            { x: 150, y: 300, width: 180, height: 100, color: '#f1c40f' },
-            { x: 450, y: 280, width: 120, height: 120, color: '#9b59b6' }
-        ];
 
         let keys = {};
 
-        // Получаем начальный список игроков от сервера
+        // Выбор цвета из палитры
+        function selectColor(color, element) {
+            currentColor = color;
+            isPipetteActive = false;
+            document.getElementById('customColor').value = color;
+            
+            if (element) {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                element.classList.add('active');
+            }
+        }
+
+        function setBrushSize(size) {
+            brushSize = size;
+        }
+
+        // Сетевые события
         socket.on('currentPlayers', (serverPlayers) => {
             players = serverPlayers;
         });
 
-        // Добавляем нового игрока
         socket.on('newPlayer', (data) => {
             players[data.id] = data.player;
         });
 
-        // Обновляем позицию другого игрока
         socket.on('playerMoved', (data) => {
             if (players[data.id]) {
                 players[data.id] = data.player;
             }
         });
 
-        // Удаляем отключившегося игрока
         socket.on('disconnectPlayer', (id) => {
             delete players[id];
         });
 
+        // Управление клавиатурой
         window.addEventListener('keydown', (e) => {
             keys[e.code] = true;
-
-            // Нажатие E — пипетка
-            if (e.code === 'KeyE') {
-                let sampledColor = '#ffffff';
-                let standingOnPlatform = false;
-
-                environment.forEach(env => {
-                    if (
-                        player.x + player.width > env.x &&
-                        player.x < env.x + env.width &&
-                        player.y + player.height > env.y &&
-                        player.y < env.y + env.height
-                    ) {
-                        sampledColor = env.color;
-                        standingOnPlatform = true;
-                    }
-                });
-
-                if (standingOnPlatform) {
-                    player.color = sampledColor;
-                    player.isPainted = true;
-                    colorBox.style.backgroundColor = player.color;
-                } else {
-                    player.color = '#ffffff';
-                    player.isPainted = false;
-                    colorBox.style.backgroundColor = player.color;
-                }
-            }
+            if (e.shiftKey) isPipetteActive = true;
         });
 
         window.addEventListener('keyup', (e) => {
             keys[e.code] = false;
+            if (!e.shiftKey) isPipetteActive = false;
         });
 
+        // Обработка мыши для рисования и пипетки
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 2 || e.shiftKey) { // Правая кнопка мыши или зажат Shift = Пипетка
+                isPipetteActive = true;
+            } else {
+                isDrawing = true;
+                paintAtMouse(e);
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDrawing = false;
+            isPipetteActive = false;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                paintAtMouse(e);
+            }
+        });
+
+        // Отключаем стандартное контекстное меню при ПКМ, чтобы работала пипетка
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // Функция покраски или взятия цвета (пипетки) по координатам мыши
+        function paintAtMouse(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // Проверяем попадание по локальному игроку
+            const pX = localPlayer.x;
+            const pY = localPlayer.y;
+
+            if (
+                mouseX >= pX && mouseX < pX + GRID_W * PIXEL_SIZE &&
+                mouseY >= pY && mouseY < pY + GRID_H * PIXEL_SIZE
+            ) {
+                // Вычисляем координаты пикселя внутри сетки хамелеона
+                const gridX = Math.floor((mouseX - pX) / PIXEL_SIZE);
+                const gridY = Math.floor((mouseY - pY) / PIXEL_SIZE);
+
+                if (isPipetteActive) {
+                    // Пипетка: берем цвет пикселя
+                    currentColor = localPlayer.skin[gridY][gridX];
+                    document.getElementById('customColor').value = currentColor;
+                    isPipetteActive = false;
+                } else {
+                    // Кисть: закрашиваем пиксель (с учетом размера кисти)
+                    for (let dy = 0; dy < brushSize; dy++) {
+                        for (let dx = 0; dx < brushSize; dx++) {
+                            let nx = gridX + dx;
+                            let ny = gridY + dy;
+                            if (nx < GRID_W && ny < GRID_H) {
+                                localPlayer.skin[ny][nx] = currentColor;
+                            }
+                        }
+                    }
+                    // Отправляем обновленную кожу на сервер
+                    socket.emit('playerMovement', {
+                        x: localPlayer.x,
+                        y: localPlayer.y,
+                        skin: localPlayer.skin
+                    });
+                }
+            }
+        }
+
+        // Обновление логики передвижения
         function update() {
             let dx = 0;
             let dy = 0;
+            let speed = 3;
 
-            if (keys['ArrowLeft'] || keys['KeyA']) dx = -player.speed;
-            if (keys['ArrowRight'] || keys['KeyD']) dx = player.speed;
-            if (keys['ArrowUp'] || keys['KeyW']) dy = -player.speed;
-            if (keys['ArrowDown'] || keys['KeyS']) dy = player.speed;
+            if (keys['ArrowLeft'] || keys['KeyA']) dx = -speed;
+            if (keys['ArrowRight'] || keys['KeyD']) dx = speed;
+            if (keys['ArrowUp'] || keys['KeyW']) dy = -speed;
+            if (keys['ArrowDown'] || keys['KeyS']) dy = speed;
 
             if (dx !== 0 || dy !== 0) {
-                player.x += dx;
-                player.y += dy;
+                localPlayer.x += dx;
+                localPlayer.y += dy;
 
                 // Границы экрана
-                if (player.x < 0) player.x = 0;
-                if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-                if (player.y < 0) player.y = 0;
-                if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+                if (localPlayer.x < 0) localPlayer.x = 0;
+                if (localPlayer.x + GRID_W * PIXEL_SIZE > canvas.width) localPlayer.x = canvas.width - GRID_W * PIXEL_SIZE;
+                if (localPlayer.y < 0) localPlayer.y = 0;
+                if (localPlayer.y + GRID_H * PIXEL_SIZE > canvas.height) localPlayer.y = canvas.height - GRID_H * PIXEL_SIZE;
 
-                // Отправляем координаты на сервер
                 socket.emit('playerMovement', {
-                    x: player.x,
-                    y: player.y,
-                    color: player.color,
-                    isPainted: player.isPainted
+                    x: localPlayer.x,
+                    y: localPlayer.y,
+                    skin: localPlayer.skin
                 });
+            }
+        }
+
+        // Отрисовка игрока по его пиксельной сетке
+        function drawPlayer(p) {
+            if (!p.skin) return;
+            for (let y = 0; y < GRID_H; y++) {
+                for (let x = 0; x < GRID_W; x++) {
+                    ctx.fillStyle = p.skin[y][x];
+                    ctx.fillRect(p.x + x * PIXEL_SIZE, p.y + y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+                }
             }
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Рисуем зоны
-            environment.forEach(env => {
-                ctx.fillStyle = env.color;
-                ctx.fillRect(env.x, env.y, env.width, env.height);
-                ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-                ctx.lineWidth = 3;
-                ctx.strokeRect(env.x, env.y, env.width, env.height);
-            });
+            // Рисуем сетку фона (для красоты редактора)
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 40) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
 
-            // Рисуем всех игроков (включая себя и других)
+            // Рисуем всех игроков на сервере
             Object.keys(players).forEach((id) => {
                 let p = players[id];
-                // Если это мы, используем актуальные локальные данные
                 if (id === socket.id) {
-                    p = player;
+                    p = localPlayer;
                 }
-
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, p.width, p.height);
-
-                ctx.strokeStyle = p.isPainted ? p.color : '#000';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(p.x, p.y, p.width, p.height);
-
-                // Глаза хамелеона
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(p.x + 6, p.y + 8, 8, 8);
-                ctx.fillRect(p.x + 20, p.y + 8, 8, 8);
-                ctx.fillStyle = '#000';
-                ctx.fillRect(p.x + 9, p.y + 11, 3, 3);
-                ctx.fillRect(p.x + 23, p.y + 11, 3, 3);
+                drawPlayer(p);
             });
         }
 
