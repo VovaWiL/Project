@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meccha Chameleon Web Prototype</title>
+    <title>Meccha Chameleon Online</title>
     <style>
         body {
             margin: 0;
@@ -46,52 +46,78 @@
             font-size: 13px;
         }
     </style>
+    <!-- Подключаем Socket.io с сервера -->
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
     <canvas id="gameCanvas" width="800" height="450"></canvas>
     
     <div class="ui-panel">
-        <div>Твой цвет: <span id="currentColorBox" class="color-preview" style="background-color: #ff5555;"></span></div>
-        <div>Цель: Встань на панель нужного цвета и нажми <b>E</b>, чтобы покраситься и слиться с окружением!</div>
+        <div>Твой цвет: <span id="currentColorBox" class="color-preview" style="background-color: #ffffff;"></span></div>
+        <div>Цель: Встань на панель нужного цвета и нажми <b>E</b>, чтобы замаскироваться!</div>
     </div>
     
     <div class="instructions">
-        Управление: W, A, S, D или Стрелки — бегать. Клавиша E — пипетка / покраситься под цвет под тобой.
+        Управление: W, A, S, D — бегать. Клавиша E — пипетка / покраситься под цвет под тобой.
     </div>
 
     <script>
+        const socket = io();
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const colorBox = document.getElementById('currentColorBox');
 
-        // Игрок (белый персонаж в оригинале, который себя красит)
+        let players = {};
+
+        // Локальный игрок
         let player = {
             x: 100,
             y: 200,
             width: 35,
             height: 45,
             speed: 3.5,
-            color: '#ffffff', // Изначально белый
+            color: '#ffffff',
             isPainted: false
         };
 
-        // Элементы окружения (стены / зоны разного цвета, под которые надо маскироваться)
+        // Зоны окружения
         let environment = [
-            { x: 50, y: 50, width: 120, height: 120, color: '#e74c3c', name: 'Красная зона' },
-            { x: 300, y: 50, width: 200, height: 100, color: '#2ecc71', name: 'Зеленая зона' },
-            { x: 600, y: 80, width: 150, height: 150, color: '#3498db', name: 'Синяя зона' },
-            { x: 150, y: 300, width: 180, height: 100, color: '#f1c40f', name: 'Желтая зона' },
-            { x: 450, y: 280, width: 120, height: 120, color: '#9b59b6', name: 'Фиолетовая зона' }
+            { x: 50, y: 50, width: 120, height: 120, color: '#e74c3c' },
+            { x: 300, y: 50, width: 200, height: 100, color: '#2ecc71' },
+            { x: 600, y: 80, width: 150, height: 150, color: '#3498db' },
+            { x: 150, y: 300, width: 180, height: 100, color: '#f1c40f' },
+            { x: 450, y: 280, width: 120, height: 120, color: '#9b59b6' }
         ];
 
-        // Управление
         let keys = {};
+
+        // Получаем начальный список игроков от сервера
+        socket.on('currentPlayers', (serverPlayers) => {
+            players = serverPlayers;
+        });
+
+        // Добавляем нового игрока
+        socket.on('newPlayer', (data) => {
+            players[data.id] = data.player;
+        });
+
+        // Обновляем позицию другого игрока
+        socket.on('playerMoved', (data) => {
+            if (players[data.id]) {
+                players[data.id] = data.player;
+            }
+        });
+
+        // Удаляем отключившегося игрока
+        socket.on('disconnectPlayer', (id) => {
+            delete players[id];
+        });
 
         window.addEventListener('keydown', (e) => {
             keys[e.code] = true;
 
-            // Нажатие E — «пипетка» (покрасить себя под объект под игроком)
+            // Нажатие E — пипетка
             if (e.code === 'KeyE') {
                 let sampledColor = '#ffffff';
                 let standingOnPlatform = false;
@@ -113,7 +139,6 @@
                     player.isPainted = true;
                     colorBox.style.backgroundColor = player.color;
                 } else {
-                    // Если не на зоне — сброс в белый
                     player.color = '#ffffff';
                     player.isPainted = false;
                     colorBox.style.backgroundColor = player.color;
@@ -125,7 +150,6 @@
             keys[e.code] = false;
         });
 
-        // Обновление логики
         function update() {
             let dx = 0;
             let dy = 0;
@@ -135,50 +159,63 @@
             if (keys['ArrowUp'] || keys['KeyW']) dy = -player.speed;
             if (keys['ArrowDown'] || keys['KeyS']) dy = player.speed;
 
-            player.x += dx;
-            player.y += dy;
+            if (dx !== 0 || dy !== 0) {
+                player.x += dx;
+                player.y += dy;
 
-            // Границы экрана
-            if (player.x < 0) player.x = 0;
-            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
-            if (player.y < 0) player.y = 0;
-            if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+                // Границы экрана
+                if (player.x < 0) player.x = 0;
+                if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+                if (player.y < 0) player.y = 0;
+                if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+
+                // Отправляем координаты на сервер
+                socket.emit('playerMovement', {
+                    x: player.x,
+                    y: player.y,
+                    color: player.color,
+                    isPainted: player.isPainted
+                });
+            }
         }
 
-        // Отрисовка
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Рисуем уровень (окружение)
+            // Рисуем зоны
             environment.forEach(env => {
                 ctx.fillStyle = env.color;
                 ctx.fillRect(env.x, env.y, env.width, env.height);
-                
-                // Текстурная сетка для красоты
                 ctx.strokeStyle = 'rgba(0,0,0,0.15)';
                 ctx.lineWidth = 3;
                 ctx.strokeRect(env.x, env.y, env.width, env.height);
             });
 
-            // Рисуем игрока
-            ctx.fillStyle = player.color;
-            ctx.fillRect(player.x, player.y, player.width, player.height);
+            // Рисуем всех игроков (включая себя и других)
+            Object.keys(players).forEach((id) => {
+                let p = players[id];
+                // Если это мы, используем актуальные локальные данные
+                if (id === socket.id) {
+                    p = player;
+                }
 
-            // Обводка персонажа (если он замаскирован, обводка сливается, если нет — видна)
-            ctx.strokeStyle = player.isPainted ? player.color : '#000';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(player.x, player.y, player.width, player.height);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.width, p.height);
 
-            // Глаза хамелеона (чтобы персонаж выглядел забавно)
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(player.x + 6, player.y + 8, 8, 8);
-            ctx.fillRect(player.x + 20, player.y + 8, 8, 8);
-            ctx.fillStyle = '#000';
-            ctx.fillRect(player.x + 9, player.y + 11, 3, 3);
-            ctx.fillRect(player.x + 23, player.y + 11, 3, 3);
+                ctx.strokeStyle = p.isPainted ? p.color : '#000';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(p.x, p.y, p.width, p.height);
+
+                // Глаза хамелеона
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(p.x + 6, p.y + 8, 8, 8);
+                ctx.fillRect(p.x + 20, p.y + 8, 8, 8);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(p.x + 9, p.y + 11, 3, 3);
+                ctx.fillRect(p.x + 23, p.y + 11, 3, 3);
+            });
         }
 
-        // Игровой цикл
         function loop() {
             update();
             draw();
