@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASCII Art Generator — Картинка из символов</title>
+  <meta name="description" content="Превращай любые изображения в арт из ASCII символов. Выбери разрешение, загрузи картинку и скопируй результат." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: rgba(255,255,255,0.04);
+      --surface-hover: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --border-glow: rgba(139,92,246,0.4);
+      --accent: #8b5cf6;
+      --accent2: #06b6d4;
+      --accent3: #f59e0b;
+      --text: #f1f5f9;
+      --text-muted: #64748b;
+      --green: #10b981;
+      --red: #ef4444;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 20%, rgba(139,92,246,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(6,182,212,0.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(139,92,246,0.15);
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #a78bfa;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .badge::before {
+      content: '✦';
+      font-size: 10px;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 3.6rem);
+      font-weight: 800;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #f1f5f9 0%, #a78bfa 50%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 14px;
+    }
+
+    .subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* Main grid */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      backdrop-filter: blur(12px);
+    }
+
+    .card:hover {
+      border-color: rgba(139,92,246,0.25);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title::before {
+      content: '';
+      display: block;
+      width: 3px;
+      height: 14px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 14px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-zone::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, rgba(139,92,246,0.05) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .upload-zone:hover::before,
+    .upload-zone.drag-over::before { opacity: 1; }
+
+    .upload-zone:hover,
+    .upload-zone.drag-over {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(139,92,246,0.1);
+    }
+
+    .upload-zone.has-image {
+      padding: 12px;
+      border-style: solid;
+      border-color: rgba(139,92,246,0.3);
+    }
+
+    .upload-icon {
+      font-size: 2.8rem;
+      margin-bottom: 12px;
+      display: block;
+      filter: drop-shadow(0 0 12px rgba(139,92,246,0.5));
+    }
+
+    .upload-text-main {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .upload-text-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    #fileInput { display: none; }
+
+    #imagePreview {
+      width: 100%;
+      max-height: 240px;
+      object-fit: contain;
+      border-radius: 8px;
+      display: none;
+    }
+
+    /* Controls */
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 500px) {
+      .controls-grid { grid-template-columns: 1fr; }
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+
+    input[type="number"]#resolution {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]#resolution::-webkit-outer-spin-button,
+    input[type="number"]#resolution::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    input[type="number"]#resolution:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(139,92,246,0.15);
+    }
+
+    input[type="number"]#resolution.input-error {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.15);
+    }
+
+    /* Charset selector */
+    .charset-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pill:hover { border-color: var(--accent); color: var(--text); }
+
+    .pill.active {
+      background: rgba(139,92,246,0.2);
+      border-color: var(--accent);
+      color: #a78bfa;
+    }
+
+    /* Generate button */
+    .btn-generate {
+      width: 100%;
+      margin-top: 20px;
+      padding: 16px;
+      background: linear-gradient(135deg, #7c3aed, #2563eb);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-generate::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .btn-generate:hover::before { opacity: 1; }
+    .btn-generate:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(124,58,237,0.4); }
+    .btn-generate:active { transform: translateY(0); }
+    .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-generate span { position: relative; z-index: 1; }
+
+    /* Result card - full width */
+    .result-card {
+      grid-column: 1 / -1;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .result-stats {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .stat {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .stat span {
+      color: var(--accent2);
+      font-weight: 600;
+    }
+
+    /* ASCII output */
+    .ascii-output {
+      background: #050508;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 16px;
+      overflow: auto;
+      max-height: 500px;
+      position: relative;
+    }
+
+    #asciiResult {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 6px;
+      line-height: 1.1;
+      white-space: pre;
+      color: #c4b5fd;
+      display: block;
+      min-height: 100px;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+      gap: 12px;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon { font-size: 2.5rem; opacity: 0.4; }
+    .empty-state-text { font-size: 14px; }
+
+    /* Action buttons */
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: var(--surface-hover);
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-1px);
+    }
+
+    .btn:active { transform: translateY(0); }
+
+    .btn-copy {
+      border-color: rgba(139,92,246,0.3);
+      background: rgba(139,92,246,0.1);
+      color: #a78bfa;
+    }
+
+    .btn-copy:hover {
+      background: rgba(139,92,246,0.2);
+      border-color: var(--accent);
+    }
+
+    .btn-copy.copied {
+      border-color: rgba(16,185,129,0.4);
+      background: rgba(16,185,129,0.1);
+      color: #34d399;
+    }
+
+    .btn-download {
+      border-color: rgba(6,182,212,0.3);
+      background: rgba(6,182,212,0.1);
+      color: #22d3ee;
+    }
+
+    .btn-download:hover {
+      background: rgba(6,182,212,0.2);
+      border-color: var(--accent2);
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn-generate.loading .spinner { display: block; }
+    .btn-generate.loading .btn-text { opacity: 0.7; }
+
+    /* Color mode toggle */
+    .color-pills {
+      display: flex;
+      gap: 6px;
+    }
+
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .color-swatch.active { border-color: white; transform: scale(1.15); }
+    .color-swatch:hover { transform: scale(1.1); }
+
+    /* Canvas hidden */
+    #canvas { display: none; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.5); }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: rgba(16,185,129,0.15);
+      border: 1px solid rgba(16,185,129,0.4);
+      color: #34d399;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      backdrop-filter: blur(12px);
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* Font size controls */
+    .font-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .font-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: all 0.2s;
+    }
+
+    .font-btn:hover { background: var(--surface-hover); border-color: var(--accent); }
+
+    .font-size-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      min-width: 30px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <div class="toast" id="toast">✓ Скопировано!</div>
+
+  <div class="container">
+    <header>
+      <div class="badge">ASCII Art Generator</div>
+      <h1>Картинка из символов</h1>
+      <p class="subtitle">Загрузи изображение — получи арт из ASCII-символов</p>
+    </header>
+
+    <div class="main-grid">
+
+      <!-- Upload & Settings card -->
+      <div class="card">
+        <div class="card-title">Загрузка изображения</div>
+
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="fileInput" accept="image/*" />
+          <span class="upload-icon" id="uploadIcon">🖼️</span>
+          <div class="upload-text-main" id="uploadTextMain">Нажми или перетащи картинку</div>
+          <div class="upload-text-sub" id="uploadTextSub">PNG, JPG, GIF, WebP, BMP</div>
+          <img id="imagePreview" alt="Предпросмотр" />
+        </div>
+
+        <div class="controls-grid">
+          <div class="control-group">
+            <label>Столбиков (10 – 7000)</label>
+            <input type="number" id="resolution" value="100" min="10" max="7000" placeholder="100" />
+          </div>
+
+          <div class="control-group">
+            <label>Набор символов</label>
+            <div class="charset-pills">
+              <button class="pill active" data-charset="standard" id="pill-standard">Стандарт</button>
+              <button class="pill" data-charset="blocks">Блоки</button>
+              <button class="pill" data-charset="dots">Точки</button>
+              <button class="pill" data-charset="minimal">Мини</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-generate" id="generateBtn" disabled>
+          <span class="spinner"></span>
+          <span class="btn-text">⚡ Сгенерировать</span>
+        </button>
+      </div>
+
+      <!-- Info / Preview card -->
+      <div class="card">
+        <div class="card-title">Настройки вывода</div>
+
+        <div class="control-group" style="margin-bottom: 18px;">
+          <label>Цвет символов</label>
+          <div class="color-pills" id="colorPicker">
+            <div class="color-swatch active" data-color="#c4b5fd" style="background:#c4b5fd;" title="Фиолетовый"></div>
+            <div class="color-swatch" data-color="#22d3ee" style="background:#22d3ee;" title="Голубой"></div>
+            <div class="color-swatch" data-color="#34d399" style="background:#34d399;" title="Зелёный"></div>
+            <div class="color-swatch" data-color="#fbbf24" style="background:#fbbf24;" title="Жёлтый"></div>
+            <div class="color-swatch" data-color="#f87171" style="background:#f87171;" title="Красный"></div>
+            <div class="color-swatch" data-color="#f1f5f9" style="background:#f1f5f9;" title="Белый"></div>
+            <div class="color-swatch" data-color="#fb923c" style="background:#fb923c;" title="Оранжевый"></div>
+          </div>
+        </div>
+
+        <div class="control-group" style="margin-bottom: 18px;">
+          <label>Инверсия яркости</label>
+          <div class="charset-pills">
+            <button class="pill active" id="invertOff" data-invert="false">Обычная</button>
+            <button class="pill" id="invertOn" data-invert="true">Инверт</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Размер шрифта в превью</label>
+          <div class="font-controls">
+            <button class="font-btn" id="fontMinus">−</button>
+            <span class="font-size-label" id="fontSizeLabel">6px</span>
+            <button class="font-btn" id="fontPlus">+</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; padding: 16px; background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.15); border-radius: 12px;">
+          <div style="font-size: 12px; color: var(--text-muted); line-height: 1.7;">
+            💡 <strong style="color: var(--text);">Советы:</strong><br>
+            • Высокое разрешение = больше деталей<br>
+            • Лучший результат на контрастных изображениях<br>
+            • Портреты работают отлично!
+          </div>
+        </div>
+      </div>
+
+      <!-- Result card -->
+      <div class="card result-card" id="resultCard">
+        <div class="result-header">
+          <div class="card-title" style="margin-bottom: 0;">Результат</div>
+          <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <div class="result-stats" id="resultStats" style="display:none;">
+              <div class="stat">Строк: <span id="statRows">—</span></div>
+              <div class="stat">Колонок: <span id="statCols">—</span></div>
+              <div class="stat">Символов: <span id="statChars">—</span></div>
+            </div>
+            <div class="action-buttons" id="actionButtons" style="display:none;">
+              <button class="btn btn-copy" id="copyBtn">
+                <span>📋</span> Копировать
+              </button>
+              <button class="btn btn-download" id="downloadBtn">
+                <span>💾</span> Скачать .txt
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ascii-output" id="asciiOutput">
+          <div class="empty-state" id="emptyState">
+            <div class="empty-state-icon">✦</div>
+            <div class="empty-state-text">Загрузи картинку и нажми «Сгенерировать»</div>
+          </div>
+          <pre id="asciiResult" style="display:none;"></pre>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // --- Charsets ---
+    const CHARSETS = {
+      standard: '@%#*+=-:. ',
+      blocks:   '█▓▒░ ',
+      dots:     '●◉◎○◌ ',
+      minimal:  '#. ',
+    };
+
+    let currentCharset = 'standard';
+    let currentColor = '#c4b5fd';
+    let invertBrightness = false;
+    let fontSize = 6;
+    let lastAscii = '';
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const fileInput = document.getElementById('fileInput');
+    const uploadZone = document.getElementById('uploadZone');
+    const imagePreview = document.getElementById('imagePreview');
+    const generateBtn = document.getElementById('generateBtn');
+    const asciiResult = document.getElementById('asciiResult');
+    const emptyState = document.getElementById('emptyState');
+    const actionButtons = document.getElementById('actionButtons');
+    const resultStats = document.getElementById('resultStats');
+    const toast = document.getElementById('toast');
+
+    let loadedImage = null;
+
+    // --- Upload zone click ---
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) loadImage(file);
+    });
+
+    // --- Drag & Drop ---
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('drag-over');
+    });
+
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) loadImage(file);
+    });
+
+    function loadImage(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          loadedImage = img;
+          imagePreview.src = e.target.result;
+          imagePreview.style.display = 'block';
+          document.getElementById('uploadIcon').style.display = 'none';
+          document.getElementById('uploadTextMain').style.display = 'none';
+          document.getElementById('uploadTextSub').style.display = 'none';
+          uploadZone.classList.add('has-image');
+          generateBtn.disabled = false;
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // --- Charset pills ---
+    document.querySelectorAll('.pill[data-charset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.pill[data-charset]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentCharset = btn.dataset.charset;
+      });
+    });
+
+    // --- Invert pills ---
+    document.getElementById('invertOff').addEventListener('click', () => {
+      invertBrightness = false;
+      document.getElementById('invertOff').classList.add('active');
+      document.getElementById('invertOn').classList.remove('active');
+    });
+    document.getElementById('invertOn').addEventListener('click', () => {
+      invertBrightness = true;
+      document.getElementById('invertOn').classList.add('active');
+      document.getElementById('invertOff').classList.remove('active');
+    });
+
+    // --- Color picker ---
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+        swatch.classList.add('active');
+        currentColor = swatch.dataset.color;
+        asciiResult.style.color = currentColor;
+      });
+    });
+
+    // --- Font size ---
+    const fontSizeLabel = document.getElementById('fontSizeLabel');
+    document.getElementById('fontMinus').addEventListener('click', () => {
+      if (fontSize > 3) { fontSize--; applyFontSize(); }
+    });
+    document.getElementById('fontPlus').addEventListener('click', () => {
+      if (fontSize < 20) { fontSize++; applyFontSize(); }
+    });
+    function applyFontSize() {
+      asciiResult.style.fontSize = fontSize + 'px';
+      fontSizeLabel.textContent = fontSize + 'px';
+    }
+
+    // --- Generate ---
+    generateBtn.addEventListener('click', generate);
+
+    function generate() {
+      if (!loadedImage) return;
+
+      // Validate resolution input
+      const resInput = document.getElementById('resolution');
+      const cols = parseInt(resInput.value);
+      if (isNaN(cols) || cols < 10 || cols > 7000) {
+        resInput.classList.add('input-error');
+        showToast('⚠️ Введи число от 10 до 7000!');
+        setTimeout(() => resInput.classList.remove('input-error'), 2000);
+        return;
+      }
+      resInput.classList.remove('input-error');
+
+      generateBtn.classList.add('loading');
+      generateBtn.disabled = true;
+
+      // Use requestAnimationFrame to allow UI to update before heavy computation
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          try {
+            const ascii = imageToAscii(loadedImage);
+            lastAscii = ascii;
+            displayResult(ascii);
+          } finally {
+            generateBtn.classList.remove('loading');
+            generateBtn.disabled = false;
+          }
+        }, 50);
+      });
+    }
+
+    function imageToAscii(img) {
+      const cols = parseInt(document.getElementById('resolution').value);
+
+      const chars = CHARSETS[currentCharset];
+
+      // Calculate rows to maintain aspect ratio (font chars are ~2x taller than wide)
+      const aspectRatio = img.height / img.width;
+      const rows = Math.floor(cols * aspectRatio * 0.45);
+
+      canvas.width = cols;
+      canvas.height = rows;
+
+      ctx.drawImage(img, 0, 0, cols, rows);
+      const imageData = ctx.getImageData(0, 0, cols, rows);
+      const pixels = imageData.data;
+
+      let ascii = '';
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const i = (y * cols + x) * 4;
+          const r = pixels[i], g = pixels[i+1], b = pixels[i+2];
+          // Luminance
+          let brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+          if (invertBrightness) brightness = 1 - brightness;
+          const charIdx = Math.floor(brightness * (chars.length - 1));
+          ascii += chars[charIdx];
+        }
+        ascii += '\n';
+      }
+
+      return ascii;
+    }
+
+    function displayResult(ascii) {
+      emptyState.style.display = 'none';
+      asciiResult.style.display = 'block';
+      asciiResult.textContent = ascii;
+      asciiResult.style.color = currentColor;
+      asciiResult.style.fontSize = fontSize + 'px';
+      actionButtons.style.display = 'flex';
+      resultStats.style.display = 'flex';
+
+      const lines = ascii.split('\n').filter(l => l.length > 0);
+      document.getElementById('statRows').textContent = lines.length;
+      document.getElementById('statCols').textContent = lines[0]?.length || 0;
+      document.getElementById('statChars').textContent = (ascii.replace(/\n/g, '').length).toLocaleString('ru');
+    }
+
+    // --- Copy ---
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      if (!lastAscii) return;
+      navigator.clipboard.writeText(lastAscii).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.classList.add('copied');
+        btn.innerHTML = '<span>✓</span> Скопировано!';
+        showToast('✓ ASCII-арт скопирован в буфер обмена!');
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = '<span>📋</span> Копировать';
+        }, 2000);
+      });
+    });
+
+    // --- Download ---
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      if (!lastAscii) return;
+      const blob = new Blob([lastAscii], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ascii-art.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('💾 Файл сохранён как ascii-art.txt');
+    });
+
+    // --- Toast ---
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>
