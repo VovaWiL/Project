@@ -1,141 +1,154 @@
-<!DOCTYPE html>
+html = r"""<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PyStudio — Python IDE</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0a0a0f; --bg2: #0f0f18;
-      --surface: rgba(255,255,255,0.04); --surface-hover: rgba(255,255,255,0.07);
-      --border: rgba(255,255,255,0.08);
-      --accent: #8b5cf6; --accent2: #06b6d4;
-      --text: #f1f5f9; --text-muted: #64748b;
-      --green: #10b981; --red: #ef4444; --yellow: #f59e0b;
-    }
-    html, body { height: 100%; overflow: hidden; }
-    body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
-    body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 60% 40% at 30% 10%, rgba(139,92,246,0.07) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 80% 80%, rgba(6,182,212,0.05) 0%, transparent 60%); pointer-events: none; z-index: 0; }
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 3px; }
-    /* LOADING */
-    .loading-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 10000; transition: opacity 0.4s; }
-    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
-    .loading-logo { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, #a78bfa, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .loading-bar-wrap { width: 200px; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
-    .loading-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); animation: loadbar 1.5s ease-in-out infinite; }
-    @keyframes loadbar { 0%{width:0%;margin-left:0} 50%{width:60%;margin-left:20%} 100%{width:0%;margin-left:100%} }
-    .loading-text { font-size: 13px; color: var(--text-muted); }
-    /* TOOLBAR */
-    .toolbar { height: 52px; min-height: 52px; background: rgba(15,15,24,0.95); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 8px; backdrop-filter: blur(12px); z-index: 100; position: relative; }
-    .logo { display: flex; align-items: center; gap: 8px; margin-right: 12px; }
-    .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, #7c3aed, #06b6d4); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-    .logo-text { font-size: 15px; font-weight: 800; background: linear-gradient(135deg, #a78bfa, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .file-name { font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 7px; padding: 4px 10px; cursor: pointer; transition: all 0.2s; }
-    .file-name:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
-    .divider { width: 1px; height: 24px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
-    .spacer { flex: 1; }
-    .tb-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-    .tb-btn:hover { background: var(--surface-hover); color: var(--text); border-color: rgba(255,255,255,0.15); }
-    .tb-btn-run { background: linear-gradient(135deg, #16a34a, #059669); border-color: transparent; color: white; padding: 6px 16px; font-size: 13px; }
-    .tb-btn-run:hover { background: linear-gradient(135deg, #15803d, #047857); color: white; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(16,185,129,0.3); }
-    .tb-btn-run.running { background: linear-gradient(135deg, #dc2626, #b91c1c); }
-    .tb-btn-ai { background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(6,182,212,0.1)); border-color: rgba(139,92,246,0.3); color: #a78bfa; }
-    .tb-btn-ai:hover { background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(6,182,212,0.2)); color: #c4b5fd; border-color: var(--accent); }
-    .kb-hint { font-size: 10px; font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 4px; color: var(--text-muted); }
-    /* MAIN */
-    .main { flex: 1; display: flex; overflow: hidden; position: relative; }
-    .editor-pane { flex: 1; min-width: 200px; display: flex; flex-direction: column; overflow: hidden; }
-    .pane-header { height: 34px; display: flex; align-items: center; padding: 0 16px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); gap: 8px; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; }
-    .pane-dot { width: 7px; height: 7px; border-radius: 50%; }
-    #editorContainer { flex: 1; overflow: hidden; }
-    .resizer { width: 4px; background: var(--border); cursor: col-resize; transition: background 0.2s; flex-shrink: 0; }
-    .resizer:hover, .resizer.dragging { background: var(--accent); }
-    .output-pane { width: 380px; min-width: 200px; display: flex; flex-direction: column; border-left: 1px solid var(--border); background: var(--bg2); }
-    .output-tabs { display: flex; border-bottom: 1px solid var(--border); }
-    .out-tab { padding: 0 14px; height: 34px; display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
-    .out-tab.active { color: var(--text); border-bottom-color: var(--accent); }
-    .out-tab:hover { color: var(--text); }
-    #output { flex: 1; overflow-y: auto; padding: 14px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; }
-    .out-line { display: block; }
-    .out-line.error { color: #f87171; }
-    .out-line.success { color: #34d399; }
-    .out-line.muted { color: var(--text-muted); font-size: 11px; }
-    .out-line.ai-msg { color: #c4b5fd; }
-    .output-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 10px; color: var(--text-muted); }
-    .output-empty-icon { font-size: 2.5rem; opacity: 0.3; }
-    .output-empty-text { font-size: 13px; }
-    .ai-fix-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; padding: 8px 14px; border-radius: 9px; border: 1px solid rgba(139,92,246,0.35); background: rgba(139,92,246,0.12); color: #a78bfa; font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .ai-fix-btn:hover { background: rgba(139,92,246,0.22); border-color: var(--accent); transform: translateY(-1px); }
-    .ai-working { color: var(--text-muted); font-size: 12px; font-style: italic; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-    /* STATUSBAR */
-    .statusbar { height: 26px; background: rgba(139,92,246,0.15); border-top: 1px solid rgba(139,92,246,0.2); display: flex; align-items: center; padding: 0 16px; gap: 16px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); position: relative; z-index: 10; }
-    .status-item { display: flex; align-items: center; gap: 5px; }
-    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
-    .status-dot.ok { background: var(--green); }
-    .status-dot.err { background: var(--red); }
-    .status-dot.run { background: var(--yellow); animation: pulse 1s infinite; }
-    .status-dot.idle { background: var(--text-muted); }
-    #statusText { color: var(--text); }
-    #execTime { margin-left: auto; }
-    /* MODALS */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 999; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-    .modal-overlay.open { opacity: 1; pointer-events: all; }
-    .modal { background: #13131f; border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 28px; width: 460px; max-width: 92vw; transform: translateY(12px); transition: transform 0.2s; box-shadow: 0 24px 80px rgba(0,0,0,0.5); }
-    .modal-overlay.open .modal { transform: translateY(0); }
-    .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-    .modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
-    .modal-sub a { color: #a78bfa; text-decoration: none; }
-    .modal-sub a:hover { text-decoration: underline; }
-    .modal-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 10px 14px; margin-bottom: 16px; transition: border-color 0.2s, box-shadow 0.2s; }
-    .modal-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(139,92,246,0.15); }
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-    .modal-btn { padding: 9px 18px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .modal-btn:hover { background: var(--surface-hover); }
-    .modal-btn-primary { background: linear-gradient(135deg, #7c3aed, #2563eb); border-color: transparent; color: white; }
-    .modal-btn-primary:hover { background: linear-gradient(135deg, #6d28d9, #1d4ed8); }
-    .shortcuts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-    .shortcut-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 9px; }
-    .shortcut-desc { font-size: 12px; color: var(--text-muted); }
-    .shortcut-keys { display: flex; gap: 3px; }
-    .key { font-family: 'JetBrains Mono', monospace; font-size: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-bottom: 2px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 2px 6px; color: var(--text); }
-    /* TOAST */
-    .toast { position: fixed; bottom: 44px; right: 20px; background: rgba(15,15,24,0.95); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; backdrop-filter: blur(12px); transform: translateY(8px); opacity: 0; transition: all 0.25s; z-index: 9999; pointer-events: none; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-    .toast.show { transform: translateY(0); opacity: 1; }
-    .err-badge { background: var(--red); color: white; border-radius: 100px; padding: 0 5px; font-size: 9px; margin-left: 3px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PyStudio - Python IDE</title>
+<link href="https://fonts.bunny.net/css2?family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.css" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0a0f;--bg2:#0f0f18;--surface:rgba(255,255,255,0.04);--surface-hover:rgba(255,255,255,0.07);--border:rgba(255,255,255,0.08);--accent:#8b5cf6;--accent2:#06b6d4;--text:#f1f5f9;--text-muted:#64748b;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 30% 10%,rgba(139,92,246,0.07) 0%,transparent 60%),radial-gradient(ellipse 40% 30% at 80% 80%,rgba(6,182,212,0.05) 0%,transparent 60%);pointer-events:none;z-index:0;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:3px;}
+
+/* CodeMirror theme */
+.cm-s-pystudio.CodeMirror{background:#0a0a0f;color:#e2e8f0;font-family:'JetBrains Mono','Fira Code',Consolas,monospace;font-size:14px;line-height:1.7;height:100%;border:none;}
+.cm-s-pystudio .CodeMirror-gutters{background:#0a0a0f;border-right:1px solid rgba(255,255,255,0.06);}
+.cm-s-pystudio .CodeMirror-linenumber{color:#374151;padding:0 10px;}
+.cm-s-pystudio .CodeMirror-cursor{border-left:2px solid #8b5cf6;}
+.cm-s-pystudio .CodeMirror-selected{background:#8b5cf640;}
+.cm-s-pystudio .CodeMirror-activeline-background{background:#ffffff08;}
+.cm-s-pystudio .CodeMirror-activeline-gutter .CodeMirror-linenumber{color:#8b5cf6;}
+.cm-s-pystudio .cm-keyword{color:#a78bfa;font-weight:bold;}
+.cm-s-pystudio .cm-def{color:#60a5fa;font-weight:bold;}
+.cm-s-pystudio .cm-string{color:#34d399;}
+.cm-s-pystudio .cm-string-2{color:#6ee7b7;}
+.cm-s-pystudio .cm-comment{color:#4b5563;font-style:italic;}
+.cm-s-pystudio .cm-number{color:#fb923c;}
+.cm-s-pystudio .cm-operator{color:#22d3ee;}
+.cm-s-pystudio .cm-variable{color:#e2e8f0;}
+.cm-s-pystudio .cm-variable-2{color:#f472b6;}
+.cm-s-pystudio .cm-builtin{color:#fbbf24;}
+.cm-s-pystudio .cm-atom{color:#fb923c;}
+.cm-s-pystudio .cm-bracket{color:#94a3b8;}
+.cm-s-pystudio .CodeMirror-matchingbracket{background:#8b5cf640;color:#a78bfa!important;outline:1px solid #8b5cf6;}
+.cm-s-pystudio .CodeMirror-dialog{background:#13131f;color:var(--text);border-bottom:1px solid var(--border);padding:8px 12px;font-family:'Outfit',sans-serif;font-size:13px;}
+.cm-s-pystudio .CodeMirror-dialog input{background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:12px;}
+.cm-s-pystudio .error-line{background:rgba(239,68,68,0.12);border-left:3px solid #ef4444;}
+.CodeMirror-scroll{padding-bottom:20px;}
+
+/* Toolbar */
+.toolbar{height:52px;min-height:52px;background:rgba(15,15,24,0.97);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px;z-index:100;position:relative;}
+.logo{display:flex;align-items:center;gap:8px;margin-right:12px;}
+.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,#7c3aed,#06b6d4);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.logo-text{font-size:15px;font-weight:800;background:linear-gradient(135deg,#a78bfa,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.file-name{font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--text-muted);background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:7px;padding:4px 10px;cursor:pointer;transition:all 0.2s;}
+.file-name:hover{border-color:rgba(255,255,255,0.15);color:var(--text);}
+.divider{width:1px;height:24px;background:var(--border);margin:0 4px;flex-shrink:0;}
+.spacer{flex:1;}
+.tb-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.tb-btn:hover{background:var(--surface-hover);color:var(--text);border-color:rgba(255,255,255,0.15);}
+.tb-btn-run{background:linear-gradient(135deg,#16a34a,#059669);border-color:transparent;color:white;padding:6px 16px;font-size:13px;}
+.tb-btn-run:hover{background:linear-gradient(135deg,#15803d,#047857);color:white;transform:translateY(-1px);box-shadow:0 4px 16px rgba(16,185,129,0.3);}
+.tb-btn-run.running{background:linear-gradient(135deg,#dc2626,#b91c1c);}
+.tb-btn-ai{background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(6,182,212,0.1));border-color:rgba(139,92,246,0.3);color:#a78bfa;}
+.tb-btn-ai:hover{background:linear-gradient(135deg,rgba(139,92,246,0.3),rgba(6,182,212,0.2));color:#c4b5fd;border-color:var(--accent);}
+.kb-hint{font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:4px;color:var(--text-muted);}
+.font-size-ctrl{display:flex;align-items:center;gap:4px;}
+.fsz-btn{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:1;}
+.fsz-btn:hover{background:var(--surface-hover);border-color:var(--accent);}
+.fsz-label{font-size:11px;color:var(--text-muted);min-width:28px;text-align:center;font-family:'JetBrains Mono',monospace;}
+
+/* Main */
+.main{flex:1;display:flex;overflow:hidden;position:relative;}
+.editor-pane{flex:1;min-width:200px;display:flex;flex-direction:column;overflow:hidden;}
+.pane-header{height:34px;min-height:34px;display:flex;align-items:center;padding:0 16px;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);gap:8px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;}
+.pane-dot{width:7px;height:7px;border-radius:50%;}
+#editorContainer{flex:1;overflow:hidden;position:relative;}
+.resizer{width:4px;background:var(--border);cursor:col-resize;transition:background 0.2s;flex-shrink:0;}
+.resizer:hover,.resizer.dragging{background:var(--accent);}
+.output-pane{width:380px;min-width:200px;display:flex;flex-direction:column;border-left:1px solid var(--border);background:var(--bg2);}
+.output-tabs{display:flex;border-bottom:1px solid var(--border);}
+.out-tab{padding:0 14px;height:34px;display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.07em;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;}
+.out-tab.active{color:var(--text);border-bottom-color:var(--accent);}
+#output{flex:1;overflow-y:auto;padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;}
+.out-line{display:block;}
+.out-line.err{color:#f87171;}
+.out-line.ok{color:#34d399;}
+.out-line.dim{color:var(--text-muted);font-size:11px;}
+.out-line.ai{color:#c4b5fd;}
+.output-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--text-muted);}
+.output-empty-icon{font-size:2.5rem;opacity:0.3;}
+.ai-fix-btn{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:8px 14px;border-radius:9px;border:1px solid rgba(139,92,246,0.35);background:rgba(139,92,246,0.12);color:#a78bfa;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.ai-fix-btn:hover{background:rgba(139,92,246,0.22);border-color:var(--accent);transform:translateY(-1px);}
+.ai-working{color:var(--text-muted);font-size:12px;font-style:italic;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* Statusbar */
+.statusbar{height:26px;background:rgba(139,92,246,0.15);border-top:1px solid rgba(139,92,246,0.2);display:flex;align-items:center;padding:0 16px;gap:16px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text-muted);position:relative;z-index:10;}
+.status-item{display:flex;align-items:center;gap:5px;}
+.status-dot{width:6px;height:6px;border-radius:50%;}
+.status-dot.ok{background:var(--green);}
+.status-dot.err{background:var(--red);}
+.status-dot.run{background:var(--yellow);animation:pulse 1s infinite;}
+.status-dot.idle{background:var(--text-muted);}
+#statusText{color:var(--text);}
+#execTime{margin-left:auto;}
+
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:999;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#13131f;border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:28px;width:460px;max-width:92vw;transform:translateY(12px);transition:transform 0.2s;box-shadow:0 24px 80px rgba(0,0,0,0.5);}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:6px;}
+.modal-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px;line-height:1.6;}
+.modal-sub a{color:#a78bfa;text-decoration:none;}
+.modal-sub a:hover{text-decoration:underline;}
+.modal-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;padding:10px 14px;margin-bottom:16px;transition:border-color 0.2s;}
+.modal-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,0.15);}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;}
+.modal-btn{padding:9px 18px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.modal-btn:hover{background:var(--surface-hover);}
+.modal-btn-primary{background:linear-gradient(135deg,#7c3aed,#2563eb);border-color:transparent;color:white;}
+.shortcuts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.shortcut-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:9px;}
+.shortcut-desc{font-size:12px;color:var(--text-muted);}
+.shortcut-keys{display:flex;gap:3px;}
+.key{font-family:'JetBrains Mono',monospace;font-size:10px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-bottom:2px solid rgba(255,255,255,0.2);border-radius:4px;padding:2px 6px;color:var(--text);}
+.toast{position:fixed;bottom:44px;right:20px;background:rgba(15,15,24,0.97);border:1px solid var(--border);color:var(--text);padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;backdrop-filter:blur(12px);transform:translateY(8px);opacity:0;transition:all 0.25s;z-index:9999;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.toast.show{transform:translateY(0);opacity:1;}
+.err-badge{background:var(--red);color:white;border-radius:100px;padding:0 5px;font-size:9px;margin-left:3px;}
+</style>
 </head>
 <body>
-
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-logo">⚡ PyStudio</div>
-  <div class="loading-bar-wrap"><div class="loading-bar"></div></div>
-  <div class="loading-text" id="loadingText">Загрузка редактора...</div>
-</div>
-
 <div class="toast" id="toast"></div>
-
 <div class="toolbar">
   <div class="logo">
-    <div class="logo-icon">🐍</div>
+    <div class="logo-icon">&#x1F40D;</div>
     <span class="logo-text">PyStudio</span>
   </div>
-  <span class="file-name" id="fileName" title="Дважды кликни чтобы переименовать">main.py</span>
+  <span class="file-name" id="fileName" title="Двойной клик - переименовать">main.py</span>
   <div class="divider"></div>
-  <button class="tb-btn tb-btn-run" id="runBtn">▶ Запустить <span class="kb-hint">Ctrl+↵</span></button>
-  <button class="tb-btn" id="clearBtn">🗑 Очистить</button>
+  <button class="tb-btn tb-btn-run" id="runBtn">&#9654; Запустить <span class="kb-hint">Ctrl+Enter</span></button>
+  <button class="tb-btn" id="clearBtn">&#128465; Очистить</button>
   <div class="divider"></div>
-  <button class="tb-btn tb-btn-ai" id="aiFixBtn">✦ AI Исправить <span class="kb-hint">Ctrl+Shift+F</span></button>
-  <button class="tb-btn" id="settingsBtn" style="padding:6px 9px;font-size:15px;">⚙️</button>
+  <button class="tb-btn tb-btn-ai" id="aiFixBtn">&#10022; AI Исправить <span class="kb-hint">Ctrl+Shift+F</span></button>
+  <button class="tb-btn" id="settingsBtn" style="padding:6px 9px;font-size:16px;">&#9881;</button>
   <div class="spacer"></div>
-  <button class="tb-btn" id="shortcutsBtn">⌨️ Клавиши</button>
+  <div class="font-size-ctrl">
+    <button class="fsz-btn" id="fszMinus">&#8722;</button>
+    <span class="fsz-label" id="fszLabel">14px</span>
+    <button class="fsz-btn" id="fszPlus">&#43;</button>
+  </div>
+  <div class="divider"></div>
+  <button class="tb-btn" id="shortcutsBtn">&#9000; Клавиши</button>
 </div>
-
 <div class="main">
   <div class="editor-pane">
     <div class="pane-header">
@@ -150,334 +163,278 @@
   <div class="resizer" id="resizer"></div>
   <div class="output-pane" id="outputPane">
     <div class="output-tabs">
-      <div class="out-tab active" id="tabOutput">Вывод</div>
-      <div class="out-tab" id="tabProblems">Ошибки <span class="err-badge" id="errBadge" style="display:none;"></span></div>
+      <div class="out-tab active">Вывод</div>
+      <div class="out-tab">Ошибки <span class="err-badge" id="errBadge" style="display:none;"></span></div>
     </div>
     <div id="output">
       <div class="output-empty" id="outputEmpty">
-        <div class="output-empty-icon">⚡</div>
-        <div class="output-empty-text">Нажми Ctrl+Enter чтобы запустить</div>
+        <div class="output-empty-icon">&#9889;</div>
+        <div style="font-size:13px;">Нажми Ctrl+Enter чтобы запустить</div>
       </div>
     </div>
   </div>
 </div>
-
 <div class="statusbar">
-  <div class="status-item">
-    <div class="status-dot idle" id="statusDot"></div>
-    <span id="statusText">Готов</span>
-  </div>
+  <div class="status-item"><div class="status-dot idle" id="statusDot"></div><span id="statusText">Готов</span></div>
   <div class="status-item"><span id="cursorPos">Строка 1, Колонка 1</span></div>
-  <div class="status-item">🐍 Python 3 (Skulpt)</div>
+  <div class="status-item">&#x1F40D; Python 3 (Skulpt)</div>
   <div class="status-item" id="execTime"></div>
 </div>
 
 <!-- Shortcuts modal -->
 <div class="modal-overlay" id="shortcutsModal">
   <div class="modal" style="width:540px;">
-    <div class="modal-title">⌨️ Горячие клавиши PyStudio</div>
+    <div class="modal-title">&#9000; Горячие клавиши PyStudio</div>
     <div class="modal-sub">Профессиональные сочетания клавиш</div>
     <div class="shortcuts-grid">
-      <div class="shortcut-item"><span class="shortcut-desc">Запустить код</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">↵</span></div></div>
+      <div class="shortcut-item"><span class="shortcut-desc">Запустить код</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">Enter</span></div></div>
       <div class="shortcut-item"><span class="shortcut-desc">AI исправить ошибку</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">Shift</span><span class="key">F</span></div></div>
       <div class="shortcut-item"><span class="shortcut-desc">Очистить вывод</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">L</span></div></div>
-      <div class="shortcut-item"><span class="shortcut-desc">Найти / Заменить</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">H</span></div></div>
       <div class="shortcut-item"><span class="shortcut-desc">Поиск в файле</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">F</span></div></div>
+      <div class="shortcut-item"><span class="shortcut-desc">Найти и заменить</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">H</span></div></div>
       <div class="shortcut-item"><span class="shortcut-desc">Комментировать строку</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">/</span></div></div>
-      <div class="shortcut-item"><span class="shortcut-desc">Отменить действие</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">Z</span></div></div>
-      <div class="shortcut-item"><span class="shortcut-desc">Повторить действие</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">Y</span></div></div>
-      <div class="shortcut-item"><span class="shortcut-desc">Выделить всё</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">A</span></div></div>
+      <div class="shortcut-item"><span class="shortcut-desc">Отменить</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">Z</span></div></div>
+      <div class="shortcut-item"><span class="shortcut-desc">Повторить</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">Y</span></div></div>
+      <div class="shortcut-item"><span class="shortcut-desc">Дублировать строку</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">D</span></div></div>
       <div class="shortcut-item"><span class="shortcut-desc">Перейти к строке</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">G</span></div></div>
-      <div class="shortcut-item"><span class="shortcut-desc">Дублировать строку</span><div class="shortcut-keys"><span class="key">Alt</span><span class="key">Shift</span><span class="key">↓</span></div></div>
-      <div class="shortcut-item"><span class="shortcut-desc">Увеличить / Уменьшить шрифт</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">+/-</span></div></div>
-      <div class="shortcut-item"><span class="shortcut-desc">Свернуть блок кода</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">Shift</span><span class="key">[</span></div></div>
+      <div class="shortcut-item"><span class="shortcut-desc">Увеличить / уменьшить шрифт</span><div class="shortcut-keys"><span class="key">кнопки + / -</span></div></div>
       <div class="shortcut-item"><span class="shortcut-desc">Эта справка</span><div class="shortcut-keys"><span class="key">Ctrl</span><span class="key">Shift</span><span class="key">H</span></div></div>
     </div>
-    <div class="modal-actions">
-      <button class="modal-btn modal-btn-primary" onclick="closeModal('shortcutsModal')">Закрыть</button>
-    </div>
+    <div class="modal-actions"><button class="modal-btn modal-btn-primary" id="closeShortcuts">Закрыть</button></div>
   </div>
 </div>
 
-<!-- AI Settings modal -->
+<!-- Settings modal -->
 <div class="modal-overlay" id="settingsModal">
   <div class="modal">
-    <div class="modal-title">⚙️ Настройки AI (Gemini)</div>
+    <div class="modal-title">&#9881; Настройки AI</div>
     <div class="modal-sub">
-      Для функции «AI Исправить» нужен бесплатный API ключ Gemini.<br>
-      Получи его бесплатно: <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>
+      Бесплатный API ключ: <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a><br>
+      <span style="color:#34d399;font-weight:600;">Безопасно:</span> ключ в localStorage только твоего браузера.
     </div>
     <label style="font-size:12px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:8px;">Gemini API Key</label>
     <input type="password" class="modal-input" id="apiKeyInput" placeholder="AIza..." />
-    <div style="font-size:11px;color:var(--text-muted);margin-bottom:16px;">🔒 Ключ хранится только локально в браузере. Отправляется только в Google API.</div>
     <div class="modal-actions">
-      <button class="modal-btn" onclick="closeModal('settingsModal')">Отмена</button>
-      <button class="modal-btn modal-btn-primary" onclick="saveApiKey()">Сохранить</button>
+      <button class="modal-btn" id="cancelSettings">Отмена</button>
+      <button class="modal-btn modal-btn-primary" id="saveSettings">Сохранить</button>
     </div>
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
 <script>
-var editor=null,errorDecorations=[],lastError=null,isRunning=false,fontSize=14,startTime=null;
-var DEFAULT_CODE="# Добро пожаловать в PyStudio! 🐍\n# Нажми Ctrl+Enter чтобы запустить код\n\ndef fibonacci(n):\n    \"\"\"Возвращает n-е число Фибоначчи\"\"\"\n    if n <= 1:\n        return n\n    return fibonacci(n - 1) + fibonacci(n - 2)\n\nprint('Числа Фибоначчи:')\nfor i in range(10):\n    print('  F(' + str(i) + ') = ' + str(fibonacci(i)))\n\nnames = ['Алиса', 'Боб', 'Карл']\nfor name in names:\n    print('Привет, ' + name + '!')\n\nprint('\\n Программа выполнена успешно!')";
+var DEFAULT_CODE = '# Добро пожаловать в PyStudio!\n# Нажми Ctrl+Enter чтобы запустить\n\ndef fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n - 1) + fibonacci(n - 2)\n\nprint("Числа Фибоначчи:")\nfor i in range(10):\n    print("  F(" + str(i) + ") = " + str(fibonacci(i)))\n\nnames = ["Алиса", "Боб", "Карл"]\nfor name in names:\n    print("Привет, " + name + "!")\n\nprint("\\nПрограмма выполнена успешно!")';
 
-require.config({paths:{vs:'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs'}});
-require(['vs/editor/editor.main'],function(){
-  document.getElementById('loadingText').textContent='Настройка темы...';
-  monaco.editor.defineTheme('pystudio-dark',{
-    base:'vs-dark',inherit:true,
-    rules:[
-      {token:'',foreground:'e2e8f0',background:'0a0a0f'},
-      {token:'keyword',foreground:'a78bfa',fontStyle:'bold'},
-      {token:'string',foreground:'34d399'},
-      {token:'comment',foreground:'4b5563',fontStyle:'italic'},
-      {token:'number',foreground:'fb923c'},
-      {token:'operator',foreground:'22d3ee'},
-      {token:'delimiter',foreground:'94a3b8'},
-    ],
-    colors:{
-      'editor.background':'#0a0a0f','editor.foreground':'#e2e8f0',
-      'editorLineNumber.foreground':'#374151','editorLineNumber.activeForeground':'#8b5cf6',
-      'editor.lineHighlightBackground':'#ffffff08',
-      'editor.selectionBackground':'#8b5cf640',
-      'editorCursor.foreground':'#8b5cf6',
-      'editorBracketMatch.background':'#8b5cf630','editorBracketMatch.border':'#8b5cf6',
-      'scrollbarSlider.background':'#8b5cf630','scrollbarSlider.hoverBackground':'#8b5cf650',
-      'minimap.background':'#0a0a0f',
-      'editorError.foreground':'#f87171','editorWarning.foreground':'#fbbf24',
-      'editorGutter.background':'#0a0a0f',
-      'editor.findMatchBackground':'#f59e0b40',
-    }
-  });
-  document.getElementById('loadingText').textContent='Создание редактора...';
-  editor=monaco.editor.create(document.getElementById('editorContainer'),{
-    value:DEFAULT_CODE,language:'python',theme:'pystudio-dark',
-    fontSize:fontSize,fontFamily:"'JetBrains Mono','Fira Code',Consolas,monospace",
-    fontLigatures:true,lineNumbers:'on',minimap:{enabled:true,scale:1},
-    scrollBeyondLastLine:false,wordWrap:'off',automaticLayout:true,
-    tabSize:4,insertSpaces:true,detectIndentation:false,
-    bracketPairColorization:{enabled:true},guides:{bracketPairs:true,indentation:true},
-    suggest:{showKeywords:true,showSnippets:true},
-    quickSuggestions:{other:true,comments:false,strings:false},
-    parameterHints:{enabled:true},autoIndent:'full',
-    folding:true,foldingHighlight:true,showFoldingControls:'always',
-    renderLineHighlight:'gutter',cursorBlinking:'smooth',
-    cursorSmoothCaretAnimation:'on',smoothScrolling:true,mouseWheelZoom:true,
-    padding:{top:12,bottom:12},contextmenu:true,
-    scrollbar:{vertical:'auto',horizontal:'auto',verticalScrollbarSize:8,horizontalScrollbarSize:8},
-  });
-  editor.onDidChangeCursorPosition(function(e){
-    document.getElementById('cursorPos').textContent='Строка '+e.position.lineNumber+', Колонка '+e.position.column;
-  });
-  editor.addCommand(monaco.KeyMod.CtrlCmd|monaco.KeyCode.Enter,runCode);
-  editor.addCommand(monaco.KeyMod.CtrlCmd|monaco.KeyCode.KeyL,function(){clearOutput(true);});
-  editor.addCommand(monaco.KeyMod.CtrlCmd|monaco.KeyMod.Shift|monaco.KeyCode.KeyF,aiFixCode);
-  editor.addCommand(monaco.KeyMod.CtrlCmd|monaco.KeyMod.Shift|monaco.KeyCode.KeyH,function(){openModal('shortcutsModal');});
-  editor.addCommand(monaco.KeyMod.CtrlCmd|monaco.KeyCode.Equal,function(){fontSize=Math.min(fontSize+1,28);editor.updateOptions({fontSize:fontSize});});
-  editor.addCommand(monaco.KeyMod.CtrlCmd|monaco.KeyCode.Minus,function(){fontSize=Math.max(fontSize-1,8);editor.updateOptions({fontSize:fontSize});});
-  setTimeout(function(){
-    document.getElementById('loadingOverlay').classList.add('hidden');
-    editor.focus();
-  },500);
+var editor = CodeMirror(document.getElementById("editorContainer"), {
+  value: DEFAULT_CODE,
+  mode: "python",
+  theme: "pystudio",
+  lineNumbers: true,
+  autoCloseBrackets: true,
+  matchBrackets: true,
+  indentUnit: 4,
+  tabSize: 4,
+  indentWithTabs: false,
+  styleActiveLine: true,
+  lineWrapping: false,
+  extraKeys: {
+    "Ctrl-Enter": runCode,
+    "Ctrl-L": function(){ clearOutput(true); },
+    "Ctrl-Shift-F": aiFixCode,
+    "Ctrl-Shift-H": function(){ openModal("shortcutsModal"); },
+    "Ctrl-/": "toggleComment",
+    "Ctrl-D": duplicateLine,
+    "Tab": function(cm){ cm.execCommand("indentMore"); },
+    "Shift-Tab": function(cm){ cm.execCommand("indentLess"); },
+  },
 });
 
+function resizeEditor(){
+  var c = document.getElementById("editorContainer");
+  editor.setSize(c.offsetWidth, c.offsetHeight);
+}
+resizeEditor();
+window.addEventListener("resize", resizeEditor);
+editor.on("cursorActivity", function(){
+  var cur = editor.getCursor();
+  document.getElementById("cursorPos").textContent = "Строка " + (cur.line+1) + ", Колонка " + (cur.ch+1);
+});
+
+var lastError = null, isRunning = false, fontSize = 14, errorMark = null;
+
 function builtinRead(x){
-  if(Sk.builtinFiles===undefined||Sk.builtinFiles.files[x]===undefined)throw "Файл не найден: '"+x+"'";
+  if(Sk.builtinFiles===undefined||Sk.builtinFiles.files[x]===undefined) throw "File not found: "+x;
   return Sk.builtinFiles.files[x];
 }
 
 function runCode(){
-  if(!editor||isRunning)return;
-  var code=editor.getValue();
-  clearOutput(false);
-  clearDecorations();
-  lastError=null;isRunning=true;startTime=performance.now();
-  setStatus('run','Выполняется...');
-  var btn=document.getElementById('runBtn');
-  btn.classList.add('running');btn.textContent='⏹ Выполняется...';
-  var emp=document.getElementById('outputEmpty');
-  if(emp)emp.style.display='none';
-  appendOutput('▶ Запуск: main.py\n','muted');
-  Sk.configure({output:function(t){appendOutput(t,'normal');},read:builtinRead,__future__:Sk.python3,execLimit:10000});
-  Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody('<stdin>',false,code,true);}).then(function(){
-    var el=((performance.now()-startTime)/1000).toFixed(3);
-    appendOutput('\n✓ Выполнено за '+el+'с','success');
-    setStatus('ok','Выполнено за '+el+'с');
-    document.getElementById('execTime').textContent='⏱ '+el+'с';
+  if(isRunning) return;
+  var code = editor.getValue();
+  clearOutput(false); clearErrorMark();
+  lastError = null; isRunning = true;
+  var t0 = performance.now();
+  setStatus("run","Выполняется...");
+  var btn = document.getElementById("runBtn");
+  btn.classList.add("running"); btn.textContent = "Выполняется...";
+  var emp = document.getElementById("outputEmpty");
+  if(emp) emp.style.display="none";
+  appendOut("▶ Запуск: " + document.getElementById("fileName").textContent + "\n","dim");
+  Sk.configure({output:function(t){appendOut(t,"");},read:builtinRead,__future__:Sk.python3,execLimit:10000});
+  Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,code,true);})
+  .then(function(){
+    var el = ((performance.now()-t0)/1000).toFixed(3);
+    appendOut("\n✓ Выполнено за "+el+"с","ok");
+    setStatus("ok","Выполнено за "+el+"с");
+    document.getElementById("execTime").textContent="⏱ "+el+"с";
     finishRun();
   }).catch(function(e){
-    var errMsg=e.toString();
-    appendOutput('\n✗ Ошибка:\n'+errMsg,'error');
-    setStatus('err','Ошибка выполнения');
-    var m=errMsg.match(/on line (\d+)/i)||errMsg.match(/line (\d+)/i);
-    if(m)highlightErrorLine(parseInt(m[1]),errMsg);
-    lastError={code:code,error:errMsg};
-    showAIFixButton();updateErrBadge(1);finishRun();
+    var msg = e.toString();
+    appendOut("\n✗ Ошибка:\n"+msg,"err");
+    setStatus("err","Ошибка выполнения");
+    var m = msg.match(/on line (\d+)/i)||msg.match(/line (\d+)/i);
+    if(m) highlightErrorLine(parseInt(m[1])-1, msg);
+    lastError={code:code,error:msg};
+    showAiBtn(); updateErrBadge(1); finishRun();
   });
 }
 
 function finishRun(){
   isRunning=false;
-  var btn=document.getElementById('runBtn');
-  btn.classList.remove('running');
-  btn.innerHTML='▶ Запустить <span class="kb-hint">Ctrl+↵</span>';
+  var btn=document.getElementById("runBtn");
+  btn.classList.remove("running");
+  btn.innerHTML='&#9654; Запустить <span class="kb-hint">Ctrl+Enter</span>';
 }
 
-function appendOutput(text,cls){
-  cls=cls||'normal';
-  var output=document.getElementById('output');
-  var lines=text.split('\n');
+function highlightErrorLine(lineNum, msg){
+  clearErrorMark();
+  errorMark = editor.addLineClass(lineNum,"background","error-line");
+  editor.scrollIntoView({line:lineNum,ch:0},100);
+}
+function clearErrorMark(){
+  if(errorMark!==null){editor.removeLineClass(errorMark,"background","error-line");errorMark=null;}
+}
+
+function appendOut(text, cls){
+  var out=document.getElementById("output");
+  var lines=text.split("\n");
   lines.forEach(function(line,i){
-    var span=document.createElement('span');
-    span.className='out-line '+cls;
+    var span=document.createElement("span");
+    span.className="out-line"+(cls?" "+cls:"");
     span.textContent=line;
-    output.appendChild(span);
-    if(i<lines.length-1)output.appendChild(document.createElement('br'));
+    out.appendChild(span);
+    if(i<lines.length-1) out.appendChild(document.createElement("br"));
   });
-  output.scrollTop=output.scrollHeight;
+  out.scrollTop=out.scrollHeight;
 }
 
 function clearOutput(showEmpty){
-  var output=document.getElementById('output');
-  output.innerHTML='';
-  if(showEmpty){
-    output.innerHTML='<div class="output-empty" id="outputEmpty"><div class="output-empty-icon">⚡</div><div class="output-empty-text">Нажми Ctrl+Enter чтобы запустить</div></div>';
-  }
-  document.getElementById('execTime').textContent='';
-  clearDecorations();lastError=null;updateErrBadge(0);setStatus('idle','Готов');
+  var out=document.getElementById("output");
+  out.innerHTML="";
+  if(showEmpty) out.innerHTML='<div class="output-empty" id="outputEmpty"><div class="output-empty-icon">&#9889;</div><div style="font-size:13px;">Нажми Ctrl+Enter чтобы запустить</div></div>';
+  document.getElementById("execTime").textContent="";
+  clearErrorMark(); lastError=null; updateErrBadge(0); setStatus("idle","Готов");
 }
 
-function highlightErrorLine(line,msg){
-  if(!editor)return;
-  clearDecorations();
-  errorDecorations=editor.deltaDecorations([],[{
-    range:new monaco.Range(line,1,line,1),
-    options:{isWholeLine:true,className:'errorLineHighlight',glyphMarginClassName:'errorGlyph',
-      glyphMarginHoverMessage:{value:'❌ '+msg},
-      overviewRuler:{color:'#ef4444',position:1},minimap:{color:'#ef4444',position:1}}
-  }]);
-  if(!document.getElementById('errStyle')){
-    var s=document.createElement('style');s.id='errStyle';
-    s.textContent='.errorLineHighlight{background:rgba(239,68,68,0.12)!important;border-left:3px solid #ef4444!important}.errorGlyph::before{content:"✗";color:#ef4444;font-size:12px;margin-left:3px}';
-    document.head.appendChild(s);
-  }
-  editor.revealLineInCenter(line);
-}
-
-function clearDecorations(){
-  if(editor&&errorDecorations.length)errorDecorations=editor.deltaDecorations(errorDecorations,[]);
-}
-
-function showAIFixButton(){
-  var output=document.getElementById('output');
-  var btn=document.createElement('button');
-  btn.className='ai-fix-btn';btn.innerHTML='✦ Исправить с AI (Ctrl+Shift+F)';
+function showAiBtn(){
+  var out=document.getElementById("output");
+  var btn=document.createElement("button");
+  btn.className="ai-fix-btn"; btn.innerHTML="&#10022; Исправить с AI (Ctrl+Shift+F)";
   btn.onclick=aiFixCode;
-  output.appendChild(document.createElement('br'));
-  output.appendChild(btn);
-  output.scrollTop=output.scrollHeight;
+  out.appendChild(document.createElement("br")); out.appendChild(btn);
+  out.scrollTop=out.scrollHeight;
 }
 
 async function aiFixCode(){
-  var apiKey=localStorage.getItem('gemini_api_key');
-  if(!apiKey){openModal('settingsModal');showToast('⚙️ Сначала добавь API ключ Gemini!');return;}
-  if(!editor)return;
+  var apiKey=localStorage.getItem("gemini_api_key");
+  if(!apiKey){openModal("settingsModal");showToast("⚙️ Сначала добавь API ключ Gemini!");return;}
   var code=lastError?lastError.code:editor.getValue();
-  var error=lastError?lastError.error:'нет ошибки — улучши качество кода';
-  var output=document.getElementById('output');
-  var working=document.createElement('span');
-  working.className='ai-working';working.textContent='✦ AI анализирует код...';
-  output.appendChild(document.createElement('br'));output.appendChild(working);
-  output.scrollTop=output.scrollHeight;
-  var prompt='Ты профессиональный Python-разработчик. Исправь ошибку в коде.\n\nКОД:\n```python\n'+code+'\n```\n\nОШИБКА:\n'+error+'\n\nВерни ТОЛЬКО исправленный Python код. Никаких объяснений, никаких markdown блоков. Только чистый Python.';
+  var error=lastError?lastError.error:"нет ошибки — улучши код";
+  var out=document.getElementById("output");
+  var working=document.createElement("span");
+  working.className="ai-working out-line ai"; working.textContent="✦ AI анализирует код...";
+  out.appendChild(document.createElement("br")); out.appendChild(working); out.scrollTop=out.scrollHeight;
+  var prompt="Ты профессиональный Python разработчик. Исправь ошибку в коде.\n\nКОД:\n"+code+"\n\nОШИБКА:\n"+error+"\n\nВерни ТОЛЬКО исправленный Python код. Без комментариев, без markdown блоков. Только чистый Python код.";
   try{
-    var resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+apiKey,{
-      method:'POST',headers:{'Content-Type':'application/json'},
+    var resp=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+apiKey,{
+      method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.2,maxOutputTokens:4096}})
     });
-    if(!resp.ok){var err=await resp.json();throw new Error(err.error&&err.error.message?err.error.message:'API ошибка: '+resp.status);}
+    if(!resp.ok){var er=await resp.json();throw new Error(er.error&&er.error.message?er.error.message:"API ошибка "+resp.status);}
     var data=await resp.json();
-    var fixed=(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text)||'';
-    fixed=fixed.replace(/^```(?:python)?\n?/i,'').replace(/\n?```$/,'').trim();
+    var parts=(((data.candidates||[])[0]||{}).content||{}).parts||[];
+    var fixed=(parts[0]||{}).text||"";
+    fixed=fixed.replace(/^```(?:python)?\n?/i,"").replace(/\n?```$/,"").trim();
     if(fixed){
-      editor.setValue(fixed);working.remove();
-      appendOutput('\n✦ AI исправил код! Запускаю...','ai-msg');
-      lastError=null;showToast('✦ Код исправлен! Запускаю...');
+      editor.setValue(fixed); working.remove();
+      appendOut("\n✦ AI исправил код! Запускаю...","ai");
+      lastError=null; showToast("✦ Код исправлен!");
       setTimeout(runCode,600);
-    }else{working.textContent='✦ AI не смог найти исправление';}
+    } else { working.textContent="✦ AI не смог найти исправление"; }
   }catch(err){
-    working.textContent='✦ Ошибка AI: '+err.message;
-    appendOutput('\n✦ Ошибка AI: '+err.message,'error');
-    if(err.message.indexOf('API_KEY_INVALID')>=0||err.message.indexOf('400')>=0)openModal('settingsModal');
+    working.textContent="✦ Ошибка AI: "+err.message;
+    appendOut("\n✦ "+err.message,"err");
+    if(err.message.indexOf("400")>=0||err.message.toLowerCase().indexOf("key")>=0) openModal("settingsModal");
   }
 }
 
-function setStatus(type,text){
-  document.getElementById('statusDot').className='status-dot '+type;
-  document.getElementById('statusText').textContent=text;
-}
-function updateErrBadge(count){
-  var b=document.getElementById('errBadge');
-  if(count>0){b.style.display='inline';b.textContent=count;}else b.style.display='none';
-}
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-function saveApiKey(){
-  var k=document.getElementById('apiKeyInput').value.trim();
-  if(k){localStorage.setItem('gemini_api_key',k);closeModal('settingsModal');showToast('✓ API ключ сохранён!');}
-}
-window.addEventListener('load',function(){
-  var saved=localStorage.getItem('gemini_api_key');
-  if(saved)document.getElementById('apiKeyInput').value=saved;
+function setStatus(t,txt){document.getElementById("statusDot").className="status-dot "+t;document.getElementById("statusText").textContent=txt;}
+function updateErrBadge(n){var b=document.getElementById("errBadge");if(n>0){b.style.display="inline";b.textContent=n;}else b.style.display="none";}
+function openModal(id){document.getElementById(id).classList.add("open");}
+function closeModal(id){document.getElementById(id).classList.remove("open");}
+function duplicateLine(cm){var cur=cm.getCursor();var line=cm.getLine(cur.line);cm.replaceRange("\n"+line,{line:cur.line,ch:line.length});}
+
+window.addEventListener("load",function(){var s=localStorage.getItem("gemini_api_key");if(s)document.getElementById("apiKeyInput").value=s;});
+
+document.getElementById("runBtn").onclick=runCode;
+document.getElementById("clearBtn").onclick=function(){clearOutput(true);};
+document.getElementById("settingsBtn").onclick=function(){openModal("settingsModal");};
+document.getElementById("shortcutsBtn").onclick=function(){openModal("shortcutsModal");};
+document.getElementById("aiFixBtn").onclick=aiFixCode;
+document.getElementById("closeShortcuts").onclick=function(){closeModal("shortcutsModal");};
+document.getElementById("cancelSettings").onclick=function(){closeModal("settingsModal");};
+document.getElementById("saveSettings").onclick=function(){
+  var k=document.getElementById("apiKeyInput").value.trim();
+  if(k){localStorage.setItem("gemini_api_key",k);closeModal("settingsModal");showToast("✓ API ключ сохранён!");}
+};
+document.querySelectorAll(".modal-overlay").forEach(function(o){
+  o.addEventListener("click",function(e){if(e.target===o)o.classList.remove("open");});
+});
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape") document.querySelectorAll(".modal-overlay.open").forEach(function(m){m.classList.remove("open");});
+  if(e.ctrlKey&&e.shiftKey&&e.key==="H"){e.preventDefault();openModal("shortcutsModal");}
+  if(e.ctrlKey&&(e.key==="l"||e.key==="L")&&!e.shiftKey){e.preventDefault();clearOutput(true);}
+});
+document.getElementById("fileName").addEventListener("dblclick",function(){
+  var cur=document.getElementById("fileName").textContent;
+  var n=prompt("Переименовать файл:",cur);
+  if(n&&n.trim()){var name=n.trim().endsWith(".py")?n.trim():n.trim()+".py";document.getElementById("fileName").textContent=name;document.title=name+" — PyStudio";}
 });
 
-document.getElementById('runBtn').addEventListener('click',runCode);
-document.getElementById('clearBtn').addEventListener('click',function(){clearOutput(true);});
-document.getElementById('settingsBtn').addEventListener('click',function(){openModal('settingsModal');});
-document.getElementById('shortcutsBtn').addEventListener('click',function(){openModal('shortcutsModal');});
-document.getElementById('aiFixBtn').addEventListener('click',aiFixCode);
-document.querySelectorAll('.modal-overlay').forEach(function(o){
-  o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});
-});
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(function(m){m.classList.remove('open');});
-  if(e.ctrlKey&&e.shiftKey&&e.key==='H'){e.preventDefault();openModal('shortcutsModal');}
-  if(e.ctrlKey&&e.key==='l'){e.preventDefault();clearOutput(true);}
-});
+var fz=14;
+document.getElementById("fszPlus").onclick=function(){fz=Math.min(fz+1,28);editor.getWrapperElement().style.fontSize=fz+"px";document.getElementById("fszLabel").textContent=fz+"px";editor.refresh();};
+document.getElementById("fszMinus").onclick=function(){fz=Math.max(fz-1,8);editor.getWrapperElement().style.fontSize=fz+"px";document.getElementById("fszLabel").textContent=fz+"px";editor.refresh();};
 
-document.getElementById('fileName').addEventListener('dblclick',function(){
-  var cur=document.getElementById('fileName').textContent;
-  var n=prompt('Переименовать файл:',cur);
-  if(n&&n.trim()){
-    var name=n.trim().endsWith('.py')?n.trim():n.trim()+'.py';
-    document.getElementById('fileName').textContent=name;
-    document.title=name+' — PyStudio';
-  }
-});
+var rz=document.getElementById("resizer"),op=document.getElementById("outputPane"),rzing=false,rX,rW;
+rz.addEventListener("mousedown",function(e){rzing=true;rX=e.clientX;rW=op.offsetWidth;rz.classList.add("dragging");document.body.style.cursor="col-resize";document.body.style.userSelect="none";});
+document.addEventListener("mousemove",function(e){if(!rzing)return;op.style.width=Math.max(200,Math.min(800,rW+(rX-e.clientX)))+"px";resizeEditor();});
+document.addEventListener("mouseup",function(){if(rzing){rzing=false;rz.classList.remove("dragging");document.body.style.cursor="";document.body.style.userSelect="";}});
 
-var resizer=document.getElementById('resizer'),outputPane=document.getElementById('outputPane');
-var isResizing=false,startX,startW;
-resizer.addEventListener('mousedown',function(e){
-  isResizing=true;startX=e.clientX;startW=outputPane.offsetWidth;
-  resizer.classList.add('dragging');document.body.style.cursor='col-resize';document.body.style.userSelect='none';
-});
-document.addEventListener('mousemove',function(e){
-  if(!isResizing)return;
-  var dx=startX-e.clientX;
-  outputPane.style.width=Math.max(200,Math.min(800,startW+dx))+'px';
-});
-document.addEventListener('mouseup',function(){
-  if(isResizing){isResizing=false;resizer.classList.remove('dragging');document.body.style.cursor='';document.body.style.userSelect='';}
-});
-
-var toastTimer;
-function showToast(msg){
-  var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show');},3000);
-}
+var toastT;
+function showToast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("show");},3000);}
 </script>
 </body>
-</html>
+</html>"""
+
+with open(r'C:\Users\koplk\.gemini\antigravity-ide\scratch\python-ide\index.html', 'w', encoding='utf-8') as f:
+    f.write(html)
+print('Done!')
