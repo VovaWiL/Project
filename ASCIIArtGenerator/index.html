@@ -232,22 +232,7 @@
       margin-bottom: 8px;
     }
 
-    .select-wrapper {
-      position: relative;
-    }
-
-    .select-wrapper::after {
-      content: '▾';
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--accent);
-      pointer-events: none;
-      font-size: 14px;
-    }
-
-    select {
+    input[type="number"]#resolution {
       width: 100%;
       background: rgba(255,255,255,0.05);
       border: 1px solid var(--border);
@@ -256,19 +241,24 @@
       font-family: 'Outfit', sans-serif;
       font-size: 14px;
       font-weight: 500;
-      padding: 10px 36px 10px 14px;
-      cursor: pointer;
-      appearance: none;
+      padding: 10px 14px;
       transition: border-color 0.2s, box-shadow 0.2s;
+      -moz-appearance: textfield;
     }
 
-    select:focus {
+    input[type="number"]#resolution::-webkit-outer-spin-button,
+    input[type="number"]#resolution::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    input[type="number"]#resolution:focus {
       outline: none;
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(139,92,246,0.15);
     }
 
-    select option { background: #1a1a2e; }
+    input[type="number"]#resolution.input-error {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239,68,68,0.15);
+    }
 
     /* Charset selector */
     .charset-pills {
@@ -583,16 +573,8 @@
 
         <div class="controls-grid">
           <div class="control-group">
-            <label>Разрешение</label>
-            <div class="select-wrapper">
-              <select id="resolution">
-                <option value="60">Низкое (60 колонок)</option>
-                <option value="100" selected>Среднее (100 колонок)</option>
-                <option value="150">Высокое (150 колонок)</option>
-                <option value="200">Очень высокое (200 колонок)</option>
-                <option value="300">Максимум (300 колонок)</option>
-              </select>
-            </div>
+            <label>Столбиков (10 – 7000)</label>
+            <input type="number" id="resolution" value="100" min="10" max="7000" placeholder="100" />
           </div>
 
           <div class="control-group">
@@ -810,6 +792,17 @@
     function generate() {
       if (!loadedImage) return;
 
+      // Validate resolution input
+      const resInput = document.getElementById('resolution');
+      const cols = parseInt(resInput.value);
+      if (isNaN(cols) || cols < 10 || cols > 7000) {
+        resInput.classList.add('input-error');
+        showToast('⚠️ Введи число от 10 до 7000!');
+        setTimeout(() => resInput.classList.remove('input-error'), 2000);
+        return;
+      }
+      resInput.classList.remove('input-error');
+
       generateBtn.classList.add('loading');
       generateBtn.disabled = true;
 
@@ -830,6 +823,7 @@
 
     function imageToAscii(img) {
       const cols = parseInt(document.getElementById('resolution').value);
+
       const chars = CHARSETS[currentCharset];
 
       // Calculate rows to maintain aspect ratio (font chars are ~2x taller than wide)
