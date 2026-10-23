@@ -1,1 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Нагрудные награды</title>
+    <style>
+        body {
+            background-color: #1a1b1e;
+            color: white;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .message-box {
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            text-align: center;
+            opacity: 0; /* Изначально скрыто */
+            transition: all 0.5s ease-in-out;
+        }
+        .visible { opacity: 1; } /* Анимация появления */
+    </style>
+</head>
+<body>
+<div class="message-box" id="msgBox"></div>
+<script>
+// Подключаемся к нашему серверу по WebSocket
+const socket = new WebSocket('wss://YOUR_SERVER_URL/ws');
+socket.onopen = () => console.log('Соединение установлено.');
 
+// При получении сообщения от сервера выводим его на экран
+socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    document.getElementById('msgBox').innerHTML = `
+        <h2 style="color:#ff7f00;">🔥 Наградная надпись!</h2>
+        <p style="font-size: 2em;">${data.text}</p>
+    `;
+    // Показываем блок с анимацией
+    document.querySelector('.message-box').classList.add('visible');
+};
+</script>
+</body>
+</html>
